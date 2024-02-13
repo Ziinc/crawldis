@@ -1,6 +1,7 @@
 defmodule Crawldis.RequestQueue do
   alias Crawldis.RequestQueue
-  alias Crawldis.RequestQueue.{Worker, Syncer}
+  alias Crawldis.Syncer
+  alias Crawldis.RequestQueue.Worker
   require Logger
   use Supervisor
 
@@ -10,11 +11,11 @@ defmodule Crawldis.RequestQueue do
 
   @impl true
   def init(_init_arg) do
-    Logger.info("Request queue supervisor initializing")
-
     children = [
       Worker,
-      Syncer
+      {Syncer, name: __MODULE__.Syncer, get_pid: fn ->
+        Map.get(get_state(), :crdt_pid)
+      end}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
@@ -37,7 +38,11 @@ defmodule Crawldis.RequestQueue do
 
   # API
 
-  @spec add_request(Crawly.Request.t()) :: :ok
+  @spec get_state() :: __MODULE__.Worker.t()
+  def get_state() do
+    GenServer.call(Worker, :state)
+  end
+  @spec add_request(Crawldis.Request.t()) :: :ok
   def add_request(request) do
     GenServer.cast(Worker, {:add_request, request})
   end
@@ -57,7 +62,7 @@ defmodule Crawldis.RequestQueue do
     GenServer.call(Worker, {:clear_requests, :crawl_job_id, crawl_job_id})
   end
 
-  @spec pop_claimed_request() :: {:ok, Crawly.Request.t()} | {:error, :queue_empty | :no_claimed}
+  @spec pop_claimed_request() :: {:ok, Crawldis.Request.t()} | {:error, :queue_empty | :no_claimed}
   def pop_claimed_request() do
     GenServer.call(Worker, :pop_claimed_request)
   end
@@ -68,8 +73,8 @@ defmodule Crawldis.RequestQueue do
     GenServer.call(Worker, {:count_requests, filter})
   end
 
-  @spec list_requests() :: [%Crawly.Request{}]
-  @spec list_requests(:all | item_status()) :: [%Crawly.Request{}]
+  @spec list_requests() :: [%Crawldis.Request{}]
+  @spec list_requests(:all | item_status()) :: [%Crawldis.Request{}]
   def list_requests(filter \\ :all) do
     GenServer.call(Worker, {:list_requests, filter})
   end

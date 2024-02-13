@@ -48,8 +48,7 @@ defmodule Crawldis.Requestor.Worker do
   end
 
   defp do_requesting(request) do
-    {fetcher, options} = request.fetcher |> Crawly.Utils.unwrap_module_and_options()
-    case fetcher.fetch(request, options) do
+    case Crawldis.Fetcher.HttpFetcher.fetch(request) do
       {:ok, response}->
         {:ok, Map.put(request, :response, response)}
       other -> other
@@ -57,11 +56,62 @@ defmodule Crawldis.Requestor.Worker do
   end
 
   defp do_parsing(request_with_response) do
-    case Crawly.Utils.pipe(request_with_response.extractors, %Crawly.ParsedItem{}, %{passthrough: false}) do
+    case pipe(request_with_response.extractors, %Crawldis.Parsed{}, %{passthrough: false}) do
       {false, _} ->
         {:drop, request_with_response}
       {parsed, _new_state} ->
         {:ok, parsed}
     end
+  end
+
+
+  @spec pipe(pipelines, item, state) :: result
+        when pipelines: [Crawldis.Pipeline.t()],
+             item: map(),
+             state: map(),
+             result: {new_item | false, new_state},
+             new_item: map(),
+             new_state: map()
+  def pipe([], item, state), do: {item, state}
+  def pipe(_, false, state), do: {false, state}
+
+  def pipe([pipeline | pipelines], item, state) do
+    {module, args} =
+      case pipeline do
+        {module, args} ->
+          {module, args}
+
+        {module} ->
+          {module, nil}
+
+        module ->
+          {module, nil}
+      end
+
+    {new_item, new_state} =
+      try do
+        case args do
+          nil -> module.run(item, state)
+          _ -> module.run(item, state, args)
+        end
+      catch
+        error, reason ->
+          call =
+            case args do
+              nil ->
+                "#{inspect(module)}.run(#{inspect(item)}, #{inspect(state)})"
+
+              _ ->
+                "#{inspect(module)}.run(#{inspect(item)}, #{inspect(state)}, #{inspect(args)})"
+            end
+
+          Logger.error(
+            "Pipeline crash by call: #{call}\n#{Exception.format(error, reason, __STACKTRACE__)}"
+          )
+
+          {item, state}
+      end
+
+    pipe(pipelines, new_item, new_state)
   end
 end

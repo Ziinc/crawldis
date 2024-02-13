@@ -20,7 +20,7 @@ defmodule Crawldis.Syncer do
         raise "get_pid for retrieving the crdt pid for Syncer is not set!"
       end
     })
-    name = get_global_name(node, opts.name)
+    name = get_global_name(opts.node, opts.name)
     GenServer.start_link(__MODULE__, opts, [name: name])
   end
 

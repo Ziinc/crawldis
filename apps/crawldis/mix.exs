@@ -27,14 +27,17 @@ defmodule Crawldis.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:broadway, "~> 1.0"},
       {:libcluster, "~> 3.3"},
       {:horde, "~> 0.8"},
       {:delta_crdt, "~> 0.6.3"},
-      {:crawly, in_umbrella: true},
       {:exsync, "~> 0.2", only: :dev},
-      { :uuid, "~> 1.1" },
+      {:uuid, "~> 1.1" },
+      {:hardhat, "~> 1.0.0"},
+      {:telemetry, "~> 1.0"},
       {:phoenix_client, "~> 0.3"},
-      {:typed_struct, "~> 0.1.4"}
+      {:typed_struct, "~> 0.1.4"},
+      {:mimic, "~> 1.7", only: :test}
     ]
   end
 

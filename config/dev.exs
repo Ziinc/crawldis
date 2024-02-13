@@ -1,5 +1,7 @@
 import Config
 
+config :crawldis, env: :dev
+
 # Configure your database
 config :crawldis_panel, CrawldisPanel.Repo,
   username: "postgres",

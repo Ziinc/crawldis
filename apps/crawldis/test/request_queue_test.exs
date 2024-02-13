@@ -1,11 +1,12 @@
 defmodule Crawldis.RequestQueueTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
   alias Crawldis.RequestQueue
   doctest RequestQueue
 
-  @request %Crawly.Request{crawl_job_id: "123", url: "http://www.some url.com"}
-  setup_all do
-    RequestQueue.clear_requests()
+  @request %Crawldis.Request{crawl_job_id: "123", url: "http://www.some url.com"}
+  setup do
+    start_supervised!(Crawldis.RequestQueue)
+    :ok
   end
 
   test "add a request to a queue" do
@@ -25,8 +26,8 @@ defmodule Crawldis.RequestQueueTest do
 
     test "pop a claimed request from queue" do
       assert :ok = RequestQueue.claim_request()
-      :timer.sleep(501)
-      assert {:ok, %Crawly.Request{} = req} = RequestQueue.pop_claimed_request()
+      :timer.sleep(1000)
+      assert {:ok, %Crawldis.Request{} = req} = RequestQueue.pop_claimed_request()
       assert req == @request
       assert RequestQueue.count_requests() == 0
       assert RequestQueue.list_requests() |> length == 0

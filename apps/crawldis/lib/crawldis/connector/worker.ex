@@ -6,7 +6,7 @@ defmodule Crawldis.Connector.Worker do
   alias Crawldis.Connector.{Socket}
   use GenServer
   alias PhoenixClient.{Channel, Message}
-  alias Crawldis.Jobber
+  alias Crawldis.Manager
   def start_link(_state) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
@@ -37,7 +37,7 @@ defmodule Crawldis.Connector.Worker do
   end
   def handle_info(%Message{event: "create_crawl", payload: payload}, %{channel: channel} = state) do
     Logger.debug("connector/worker | Creating crawl job, payload: #{inspect payload}")
-    {:ok, job} = Jobber.start_job(payload)
+    {:ok, job} = Manager.start_job(payload)
     Channel.push_async(channel, "reply:create_crawl", %{"job"=> job})
     list_and_broadcast(channel)
 
@@ -46,19 +46,19 @@ defmodule Crawldis.Connector.Worker do
 
   def handle_info(%Message{event: "stop_crawl", payload: %{"id"=> id}}, %{channel: channel} = state) do
     Logger.debug("connector/worker | Stopping crawl job, id: #{inspect id}")
-    :ok = Jobber.stop_job(id)
+    :ok = Manager.stop_job(id)
     list_and_broadcast(channel)
     {:noreply, state}
   end
   def handle_info(%{event: "presence_diff"}, state), do: {:noreply, state}
 
   def handle_info(msg, state) do
-    Logger.warn("Unknown message from panel received. msg: #{inspect msg}")
+    Logger.warning("Unknown message from panel received. msg: #{inspect msg}")
     {:noreply, state}
   end
 
   defp list_and_broadcast(channel) do
-    jobs = Jobber.list_jobs()
+    jobs = Manager.list_jobs()
     Channel.push_async(channel, "reply:list_crawls", %{"jobs"=> jobs})
   end
 end

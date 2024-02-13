@@ -1,14 +1,13 @@
 defmodule Crawldis.Utils do
 
   @moduledoc false
-  alias Crawldis.Jobber.CrawlJob
-  @spec new_request(%CrawlJob{}, String.t(), map()) :: %Crawly.Request{}
+  alias Crawldis.Manager.CrawlJob
+  @spec new_request(%CrawlJob{}, String.t(), map()) :: %Crawldis.Request{}
   def new_request(%CrawlJob{id: crawl_job_id}, url, attrs \\ %{}) do
-    %Crawly.Request{
+    %Crawldis.Request{
       id: UUID.uuid4(),
       crawl_job_id: crawl_job_id,
-      url: url,
-      fetcher: Crawly.Fetchers.HTTPoisonFetcher
+      url: url
     }
     |> Map.merge(attrs)
   end
@@ -16,7 +15,7 @@ defmodule Crawldis.Utils do
   @doc """
   Derive a new request from a prior request, used to shallow clone a request and then overwrite certain attributes
   """
-  @spec derive_request(%Crawly.Request{}, map()) :: %Crawly.Request{}
+  @spec derive_request(%Crawldis.Request{}, map()) :: %Crawldis.Request{}
   def derive_request(request, attrs \\ %{}) do
     request
     |> Map.take([:headers, :extractors, :fetcher])
