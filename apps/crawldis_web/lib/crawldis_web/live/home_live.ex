@@ -12,7 +12,7 @@ defmodule CrawldisWeb.HomeLive do
       <h4>Cluster</h4>
       <div>
         <p>
-          Access token: <span><%= @cluster_token.token %></span>
+          Access token: <span><%= inspect(@cluster_token.token) %></span>
         </p>
         <p>
           URL: <span><%= @url %></span>

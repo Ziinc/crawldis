@@ -1,4 +1,5 @@
 defmodule Crawldis.Requestor do
+  @moduledoc false
   defstruct id: nil
   alias Crawldis.Requestor
   @behaviour Crawldis.Worker
@@ -26,5 +27,4 @@ defmodule Crawldis.Requestor do
 
   @impl Crawldis.Worker
   def stop(id), do: Supervisor.stop(via(id))
-
 end

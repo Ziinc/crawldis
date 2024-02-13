@@ -3,9 +3,7 @@ defmodule Crawldis.ClusterTest do
   alias Crawldis.Cluster
 
   setup do
-    Cluster.list_requestors()
-    |> Enum.each(&Cluster.stop_requestor/1)
-
+    start_supervised!(Crawldis.Cluster)
     :ok
   end
 
