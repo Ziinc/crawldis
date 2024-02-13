@@ -7,22 +7,23 @@ defmodule Crawldis.Application do
 
   @impl true
   def start(_type, _args) do
-
     env = Application.get_env(:crawldis, :env)
-    children = case env do
-      :test ->
-        []
-      _ -> [
-        Crawldis.Cluster,
-        Crawldis.RequestQueue,
-        Crawldis.Manager,
-        Crawldis.Connector,
-        Crawldis.Fetcher.HttpFetcher,
-        Crawldis.RequestPipeline
-      ]
 
+    children =
+      case env do
+        :test ->
+          []
 
-    end
+        _ ->
+          [
+            Crawldis.Cluster,
+            Crawldis.RequestQueue,
+            Crawldis.Manager,
+            Crawldis.Connector,
+            Crawldis.Fetcher.HttpFetcher,
+            Crawldis.RequestPipeline
+          ]
+      end
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

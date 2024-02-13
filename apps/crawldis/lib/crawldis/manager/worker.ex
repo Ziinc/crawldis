@@ -11,6 +11,7 @@ defmodule Crawldis.Manager.Worker do
           crdt_pid: pid()
         }
   defmodule JobMeta do
+    @moduledoc false
     defstruct id: nil
   end
 
@@ -26,12 +27,10 @@ defmodule Crawldis.Manager.Worker do
     {:ok, %__MODULE__{crdt_pid: crdt}}
   end
 
-
   # API
 
-  @spec get_state :: %Manager.Worker{}
+  @spec get_state :: Manager.Worker.t()
   def get_state, do: GenServer.call(__MODULE__, :state)
-
 
   # Callbacks
 
@@ -40,13 +39,11 @@ defmodule Crawldis.Manager.Worker do
     {:reply, state, state}
   end
 
-
   @impl true
   def handle_call(:list_jobs, _source, state) do
     list = get_queue(state) |> Map.values()
     {:reply, list, state}
   end
-
 
   @impl true
   def handle_call({:get_job, id}, _source, %{crdt_pid: pid} = state) do
@@ -54,33 +51,34 @@ defmodule Crawldis.Manager.Worker do
     {:reply, job, state}
   end
 
-
   @impl true
   def handle_call({:start_job, attrs}, _src, %{crdt_pid: pid} = state) do
-    job =  struct(CrawlJob, attrs) |> Map.put(:id, UUID.uuid4())
-    DeltaCrdt.put(pid, job.id, job )
+    job = struct(CrawlJob, attrs) |> Map.put(:id, UUID.uuid4())
+    DeltaCrdt.put(pid, job.id, job)
     Logger.debug("Adding job: #{inspect(job)}")
     # add requests
-    for url <-job.start_urls  do
+    for url <- job.start_urls do
       request = Crawldis.Utils.new_request(job, url)
       RequestQueue.add_request(request)
     end
+
     {:reply, {:ok, job}, state}
   end
 
-
   @impl true
-  def handle_cast({:stop_job, id_or_type}, state) when is_binary(id_or_type) or id_or_type in [:all] do
-    keys = if id_or_type == :all do
-      get_queue(state) |> Map.keys()
-    else
-      [id_or_type]
-    end
+  def handle_cast({:stop_job, id_or_type}, state)
+      when is_binary(id_or_type) or id_or_type in [:all] do
+    keys =
+      if id_or_type == :all do
+        get_queue(state) |> Map.keys()
+      else
+        [id_or_type]
+      end
+
     DeltaCrdt.drop(state.crdt_pid, keys)
     RequestQueue.clear_requests_by_crawl_job_id(keys)
     {:noreply, state}
   end
-
 
   defp get_queue(state) do
     DeltaCrdt.to_map(state.crdt_pid)

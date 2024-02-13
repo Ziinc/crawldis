@@ -50,7 +50,6 @@ defmodule Crawldis.Request do
   parameter.
   """
   @spec new(url, headers, options, middlewares) :: request
-        # TODO: improve typespec here
         when url: binary(),
              headers: [term()],
              options: [term()],

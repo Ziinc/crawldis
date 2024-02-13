@@ -1,4 +1,5 @@
 defmodule CrawldisWeb.ClusterChannel do
+  @moduledoc false
   use CrawldisWeb, :channel
   require Logger
   alias CrawldisWeb.Presence

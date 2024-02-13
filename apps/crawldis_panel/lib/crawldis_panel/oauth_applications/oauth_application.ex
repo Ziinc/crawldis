@@ -1,4 +1,5 @@
 defmodule CrawldisPanel.OauthApplications.OauthApplication do
+  @moduledoc false
   use Ecto.Schema
   use ExOauth2Provider.Applications.Application, otp_app: :crawldis_panel
 

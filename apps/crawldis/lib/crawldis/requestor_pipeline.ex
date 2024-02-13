@@ -1,4 +1,5 @@
 defmodule Crawldis.RequestorPipeline do
+  @moduledoc false
   use Broadway
 
   alias Broadway.Message
@@ -19,7 +20,6 @@ defmodule Crawldis.RequestorPipeline do
     message
     |> Message.update_data(&process_data/1)
   end
-
 
   defp process_data(_data) do
     # Do some calculations, generate a JSON representation, process images.

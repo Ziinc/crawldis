@@ -1,6 +1,5 @@
 defmodule Crawldis.RequestProducer do
-
-
+  @moduledoc false
   use GenStage
 
   @default_receive_interval 5_000
@@ -8,11 +7,11 @@ defmodule Crawldis.RequestProducer do
   @impl true
   def init(_opts) do
     {:producer,
-         %{
-           demand: 0,
-           receive_timer: nil,
-           receive_interval: @default_receive_interval,
-         }}
+     %{
+       demand: 0,
+       receive_timer: nil,
+       receive_interval: @default_receive_interval
+     }}
   end
 
   @impl true
@@ -30,7 +29,8 @@ defmodule Crawldis.RequestProducer do
     {:noreply, [], state}
   end
 
-  def handle_receive_messages(%{receive_timer: nil, demand: demand} = state) when demand > 0 do
+  def handle_receive_messages(%{receive_timer: nil, demand: demand} = state)
+      when demand > 0 do
     messages = receive_messages_from_redis(state, demand)
     new_demand = demand - length(messages)
 
@@ -41,7 +41,8 @@ defmodule Crawldis.RequestProducer do
         _ -> schedule_receive_messages(0)
       end
 
-    {:noreply, messages, %{state | demand: new_demand, receive_timer: receive_timer}}
+    {:noreply, messages,
+     %{state | demand: new_demand, receive_timer: receive_timer}}
   end
 
   def handle_receive_messages(state) do

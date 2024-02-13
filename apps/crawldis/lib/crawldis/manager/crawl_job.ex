@@ -4,10 +4,10 @@ defmodule Crawldis.Manager.CrawlJob do
   """
   @typep url :: String.t() | binary()
   @type t :: %__MODULE__{
-    id: String.t(),
-    start_urls: [url()]
-  }
+          id: String.t(),
+          start_urls: [url()]
+        }
   @derive Jason.Encoder
   defstruct id: nil,
-          start_urls: []
+            start_urls: []
 end

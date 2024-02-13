@@ -1,4 +1,5 @@
 defmodule Crawldis.Worker do
+  @moduledoc false
   @doc """
   Returns the via tuple to identify the worker
   """

@@ -11,7 +11,7 @@ defmodule Crawldis.ManagerTest do
   end
 
   test "start a job" do
-    assert {:ok, %CrawlJob{id: id, start_urls: [_]} } = Manager.start_job(@job)
+    assert {:ok, %CrawlJob{id: id, start_urls: [_]}} = Manager.start_job(@job)
     assert [_] = Manager.list_jobs()
     assert @job = Manager.get_job(id)
     assert is_binary(id)
@@ -34,7 +34,7 @@ defmodule Crawldis.ManagerTest do
   end
 
   defp start_job(_) do
-    {:ok, job}=  Manager.start_job(@job)
+    {:ok, job} = Manager.start_job(@job)
     {:ok, job: job}
   end
 end

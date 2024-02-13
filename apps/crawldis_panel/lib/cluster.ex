@@ -4,6 +4,7 @@ defmodule CrawldisPanel.Cluster do
 
   def get_access_token(%User{} = user) do
     oauth_config = get_config()
+
     ExOauth2Provider.AccessTokens.get_authorized_tokens_for(user, oauth_config)
     |> List.first()
   end

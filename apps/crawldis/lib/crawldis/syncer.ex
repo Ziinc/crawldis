@@ -9,19 +9,22 @@ defmodule Crawldis.Syncer do
   require Logger
   use GenServer
   use TypedStruct
+
   typedstruct enforce: true do
   end
 
   def start_link(opts) do
-    opts = Enum.into(opts, %{
-      name: nil,
-      node: Node.self(),
-      get_pid: fn ->
-        raise "get_pid for retrieving the crdt pid for Syncer is not set!"
-      end
-    })
+    opts =
+      Enum.into(opts, %{
+        name: nil,
+        node: Node.self(),
+        get_pid: fn ->
+          raise "get_pid for retrieving the crdt pid for Syncer is not set!"
+        end
+      })
+
     name = get_global_name(opts.node, opts.name)
-    GenServer.start_link(__MODULE__, opts, [name: name])
+    GenServer.start_link(__MODULE__, opts, name: name)
   end
 
   @impl true
@@ -50,10 +53,13 @@ defmodule Crawldis.Syncer do
 
   def handle_info(_, state), do: {:noreply, state}
 
-  defp set_neighbours(%{name: name}= state) do
-    pids = for node <- nodes(), pid  = :global.whereis_name({node, name}), is_pid(pid) do
-      pid
-    end
+  defp set_neighbours(%{name: name} = state) do
+    pids =
+      for node <- nodes(),
+          pid = :global.whereis_name({node, name}),
+          is_pid(pid) do
+        pid
+      end
 
     DeltaCrdt.set_neighbours(state.get_pid.(), pids)
   end

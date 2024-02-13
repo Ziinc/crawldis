@@ -1,4 +1,5 @@
 defmodule Crawldis.RequestQueue.Worker do
+  @moduledoc false
   alias Crawldis.RequestQueue
   require Logger
   use GenServer
@@ -28,13 +29,15 @@ defmodule Crawldis.RequestQueue.Worker do
   end
 
   @impl true
-  def handle_call({:clear_requests, :crawl_job_id, id}, src, state) when is_binary(id) do
-    handle_call({:clear_requests, :crawl_job_id, [id]}, src,state)
+  def handle_call({:clear_requests, :crawl_job_id, id}, src, state)
+      when is_binary(id) do
+    handle_call({:clear_requests, :crawl_job_id, [id]}, src, state)
   end
 
   @impl true
-  def handle_call({:clear_requests, :crawl_job_id, ids}, _source, state) when is_list(ids) do
-    queue =  get_queue(state)
+  def handle_call({:clear_requests, :crawl_job_id, ids}, _source, state)
+      when is_list(ids) do
+    queue = get_queue(state)
     keys = for {id, meta} <- queue, meta.request.crawl_job_id in ids, do: id
     DeltaCrdt.drop(state.crdt_pid, keys)
     {:reply, :ok, state}
@@ -87,11 +90,13 @@ defmodule Crawldis.RequestQueue.Worker do
         DeltaCrdt.delete(state.crdt_pid, key)
         req
       end
-    response = cond do
-      queue == %{} -> {:error, :queue_empty}
-      pop_res == nil-> {:error, :no_claimed}
-      true -> {:ok, popped_req}
-    end
+
+    response =
+      cond do
+        queue == %{} -> {:error, :queue_empty}
+        pop_res == nil -> {:error, :no_claimed}
+        true -> {:ok, popped_req}
+      end
 
     {:reply, response, state}
   end
