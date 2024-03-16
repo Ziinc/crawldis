@@ -63,8 +63,16 @@ defmodule Crawldis.Manager do
   #     do: GenServer.call(__MODULE__, {:get_metrics, id})
 
   @spec stop_job(binary() | :all) :: :ok
-  def stop_job(id_or_type),
-    do: GenServer.cast(Manager.Worker, {:stop_job, id_or_type})
+  def stop_job(id) do
+    for {_id, child, _type, _mod} <-
+          DynamicSupervisor.which_children(JobDynSup),
+        crawl_job = JobSup.get_job(child),
+        crawl_job.id == id or id == :all do
+      DynamicSupervisor.terminate_child(JobDynSup, child)
+    end
+
+    :ok
+  end
 
   # # callbacks
   # def handle_call({:get_metrics, id}, _caller, state) do

@@ -20,28 +20,22 @@ defmodule Crawldis.ManagerTest do
     end)
 
     :ok
+
     on_exit(fn ->
-      for {_id, child, _type, _mod} <- DynamicSupervisor.which_children(JobDynSup) do
+      for {_id, child, _type, _mod} <-
+            DynamicSupervisor.which_children(JobDynSup) do
         DynamicSupervisor.terminate_child(JobDynSup, child)
       end
     end)
   end
 
-  test "start a job" do
-    assert {:ok, %CrawlJob{id: _id, start_urls: [_]}} =
+  test "start/stop a job" do
+    assert {:ok, %CrawlJob{id: id, start_urls: [_]}} =
              Manager.start_job(start_urls: ["http://www.some url.com"])
 
     assert [%CrawlJob{}] = Manager.list_jobs()
-  end
-
-  describe "update" do
-    setup [:start_job]
-
-    test "stops a job", %{job: job} do
-      assert :ok = Manager.stop_job(job.id)
-      :timer.sleep(300)
-      assert Manager.list_jobs() |> length() == 0
-    end
+    assert :ok = Manager.stop_job(id)
+    assert [] == Manager.list_jobs()
   end
 
   describe "request pipeline" do

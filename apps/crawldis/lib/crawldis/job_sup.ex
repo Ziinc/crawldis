@@ -12,8 +12,7 @@ defmodule Crawldis.JobSup do
 
   @impl true
   def init(crawl_job) do
-    children = [
-    ]
+    children = []
 
     {:ok, _pid} = Supervisor.start_link(children, strategy: :one_for_one)
     {:ok, crawl_job}
