@@ -9,10 +9,18 @@ defmodule Crawldis.Application do
   def start(_type, _args) do
     env = Application.get_env(:crawldis, :env)
 
+    common = [
+      {DynamicSupervisor, strategy: :one_for_one, name: Crawldis.JobDynSup}
+    ]
+
     children =
       case env do
         :test ->
-          []
+          [
+            {Registry, keys: :unique, name: Crawldis.CounterRegistry},
+            {Registry,
+             [name: Crawldis.ManagerRegistry, keys: :unique, members: :auto]}
+          ] ++ common
 
         _ ->
           [
@@ -21,8 +29,9 @@ defmodule Crawldis.Application do
             Crawldis.Manager,
             Crawldis.Connector,
             Crawldis.Fetcher.HttpFetcher,
-            Crawldis.RequestPipeline
-          ]
+            Crawldis.RequestPipeline,
+            {Registry, keys: :unique, name: Crawldis.CounterRegistry}
+          ] ++ common
       end
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -30,7 +30,7 @@ defmodule Crawldis.RequestQueue do
           crdt_pid: pid()
         }
   defmodule Meta do
-  @moduledoc false
+    @moduledoc false
 
     defstruct claimed_datetime: nil,
               request: nil,
@@ -84,11 +84,5 @@ defmodule Crawldis.RequestQueue do
   @spec list_requests(:all | item_status()) :: [Crawldis.Request.t()]
   def list_requests(filter \\ :all) do
     GenServer.call(Worker, {:list_requests, filter})
-  end
-
-  @doc false
-  @spec get_state :: RequestQueue.t()
-  def get_state do
-    GenServer.call(Worker, :state)
   end
 end

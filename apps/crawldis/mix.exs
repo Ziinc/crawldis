@@ -36,7 +36,7 @@ defmodule Crawldis.MixProject do
       {:hardhat, "~> 1.0.0"},
       {:telemetry, "~> 1.0"},
       {:phoenix_client, "~> 0.3"},
-      {:typed_struct, "~> 0.1.4"},
+      {:typed_struct, "~> 0.3.0"},
       {:mimic, "~> 1.7", only: :test}
     ]
   end

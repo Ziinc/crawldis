@@ -1,30 +1,42 @@
 defmodule Crawldis.Requestor do
   @moduledoc false
-  defstruct id: nil
-  alias Crawldis.Requestor
-  @behaviour Crawldis.Worker
+  use Supervisor
 
-  use Supervisor, restart: :transient
+  # alias Crawldis.CrawlJob
+  alias Crawldis.Manager
 
-  def start_link(id) do
-    Supervisor.start_link(__MODULE__, [], name: via(id))
+  def start_link(crawl_job) do
+    Supervisor.start_link(__MODULE__, crawl_job,
+      name: Manager.via(__MODULE__, crawl_job.id)
+    )
   end
 
   @impl true
-  def init(_init_arg) do
-    children = [
-      # add in request queue
-      Requestor.Worker
-    ]
-
-    Supervisor.init(children, strategy: :one_for_one)
+  def init(crawl_job) do
+    # ref = :counters.new(4, [:write_concurrency])
+    # {:ok, _} = Registry.register(Crawldis.CounterRegistry, crawl_job.id, ref)
+    {:ok, %{job: crawl_job}}
   end
 
-  @impl Crawldis.Worker
-  def via(id) do
-    {:via, Horde.Registry, {Crawldis.Cluster.RequestorRegistry, id}}
+  def get_job() do
   end
 
-  @impl Crawldis.Worker
-  def stop(id), do: Supervisor.stop(via(id))
+  # def get_metrics(%CrawlJob{id: id}), do: get_metrics(id)
+  # def get_metrics(crawl_job_id) do
+
+  #   [{_pid, ref}] = Registry.lookup(Crawldis.CounterRegistry, crawl_job_id)
+  #   metrics = (for key <- Map.keys(%CrawlJob.Metrics{}), key not in [:__struct__], into: %{} do
+  #     {key, :counters.get(ref, metrics_idx(key))}
+  #   end)
+  #   struct(CrawlJob.Metrics, metrics)
+  # end
+
+  # def handle_call(:get_job, _caller, state) do
+  #   {:state, }
+  # end
+
+  # defp metrics_idx(:seen_urls), do: 1
+  # defp metrics_idx(:scraped), do: 2
+  # defp metrics_idx(:extracted), do: 3
+  # defp metrics_idx(:artifacts), do: 4
 end

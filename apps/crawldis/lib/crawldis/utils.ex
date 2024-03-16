@@ -1,6 +1,6 @@
 defmodule Crawldis.Utils do
   @moduledoc false
-  alias Crawldis.Manager.CrawlJob
+  alias Crawldis.CrawlJob
   @spec new_request(CrawlJob.t(), String.t(), map()) :: Crawldis.Request.t()
   def new_request(%CrawlJob{id: crawl_job_id}, url, attrs \\ %{}) do
     %Crawldis.Request{
