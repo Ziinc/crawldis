@@ -1,8 +1,9 @@
 defmodule Crawldis.ManagerTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
   alias Crawldis.Manager
   alias Crawldis.CrawlJob
   alias Crawldis.Fetcher.HttpFetcher
+  alias Crawldis.JobDynSup
   use Mimic
 
   @job %{
@@ -19,6 +20,11 @@ defmodule Crawldis.ManagerTest do
     end)
 
     :ok
+    on_exit(fn ->
+      for {_id, child, _type, _mod} <- DynamicSupervisor.which_children(JobDynSup) do
+        DynamicSupervisor.terminate_child(JobDynSup, child)
+      end
+    end)
   end
 
   test "start a job" do

@@ -13,8 +13,6 @@ defmodule Crawldis.JobSup do
   @impl true
   def init(crawl_job) do
     children = [
-      # {Crawldis.RequestorPipeline, crawl_job}
-      # {Agent, fn -> %{crawl_job: crawl_job} end}
     ]
 
     {:ok, _pid} = Supervisor.start_link(children, strategy: :one_for_one)
