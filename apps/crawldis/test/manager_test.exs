@@ -31,7 +31,7 @@ defmodule Crawldis.ManagerTest do
     assert {:ok, %CrawlJob{id: _id, start_urls: [_]}} =
              Manager.start_job(start_urls: ["http://www.some url.com"])
 
-    assert [_] = Manager.list_jobs()
+    assert [%CrawlJob{}] = Manager.list_jobs()
   end
 
   describe "update" do
