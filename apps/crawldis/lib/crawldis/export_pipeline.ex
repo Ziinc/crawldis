@@ -26,6 +26,7 @@ defmodule Crawldis.ExportPipeline do
     {:via, module, {reg, {mod, id, base_name}}}
   end
 
+  @impl Broadway
   def handle_message(_processor_name, message, crawl_job) do
     message
     |> Message.update_data(&do_export(&1, crawl_job))
@@ -40,19 +41,7 @@ defmodule Crawldis.ExportPipeline do
     data
   end
 
-  defp url_to_request(url) do
-    %Crawldis.Request{url: url}
-  end
-
-  defp make_request(%Crawldis.Request{} = request) do
-    with {:ok, %Tesla.Env{status: status} = resp} when status < 400 <-
-           Crawldis.Fetcher.HttpFetcher.fetch(request) do
-      # Requestor.increment(resp.crawl_job_id, :scraped)
-      %{request | response: resp}
-    end
-  end
-
-  def ack(_ref, successful, failed) do
+  def ack(_ref, _successful, _failed) do
     :ok
   end
 end

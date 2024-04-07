@@ -12,12 +12,13 @@ defmodule Crawldis.Plugins.ExportJsonl do
     }
   end
 
+  @impl Crawldis.Plugin
   def export(data, opts) do
     dir = Path.expand(opts[:dir])
 
     for {file, value} <- data do
       path = Path.join(dir, file <> ".jsonl")
-      File.write(path, Jason.encode!(data), [:append])
+      File.write(path, Jason.encode!(value), [:append])
     end
   end
 end

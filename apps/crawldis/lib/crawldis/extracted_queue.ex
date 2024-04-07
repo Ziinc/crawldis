@@ -1,10 +1,9 @@
 defmodule Crawldis.ExtractedQueue do
   @moduledoc false
   use GenStage
-  alias Crawldis.CrawlJob
 
   @impl true
-  def init(job) do
+  def init(_job) do
     {:producer,
      %{
        demand: 0,
