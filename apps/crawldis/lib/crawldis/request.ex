@@ -9,7 +9,12 @@ defmodule Crawldis.Request do
             middlewares: [],
             retries: 0,
             fetcher: nil,
-            extractors: [],
+            # applied on each artifact
+            extract: nil,
+            extracted_data: nil,
+            # applied on each artifact
+            follow_link_extractors: [],
+            follow_links: nil,
             response: nil
 
   @type header() :: {String.t(), String.t()}
@@ -26,7 +31,8 @@ defmodule Crawldis.Request do
           middlewares: [atom()],
           retries: non_neg_integer(),
           fetcher: module_opts(),
-          extractors: [module_opts()],
+          extract: map(),
+          extracted_data: [],
           response: Crawldis.Response.t() | nil
         }
 

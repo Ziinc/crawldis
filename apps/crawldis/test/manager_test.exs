@@ -1,16 +1,11 @@
 defmodule Crawldis.ManagerTest do
-  use ExUnit.Case, async: false
+  use Crawldis.CrawlCase
   alias Crawldis.Manager
   alias Crawldis.CrawlJob
   alias Crawldis.Fetcher.HttpFetcher
   alias Crawldis.JobDynSup
-  use Mimic
+  alias Crawldis.Plugins.ExportJsonl
 
-  @job %{
-    start_urls: ["http://www.some url.com"],
-    plugins: [],
-    extract: %{}
-  }
   setup do
     start_supervised!(Crawldis.Manager)
 
@@ -19,19 +14,21 @@ defmodule Crawldis.ManagerTest do
       {:ok, %Tesla.Env{status: 200, body: "some body"}}
     end)
 
-    :ok
-
     on_exit(fn ->
       for {_id, child, _type, _mod} <-
             DynamicSupervisor.which_children(JobDynSup) do
         DynamicSupervisor.terminate_child(JobDynSup, child)
       end
     end)
+
+    :ok
   end
 
   test "start/stop a job" do
     assert {:ok, %CrawlJob{id: id, start_urls: [_]}} =
              Manager.start_job(start_urls: ["http://www.some url.com"])
+
+    :timer.sleep(500)
 
     assert [%CrawlJob{}] = Manager.list_jobs()
     assert :ok = Manager.stop_job(id)
@@ -97,9 +94,11 @@ defmodule Crawldis.ManagerTest do
       assert {:ok, %CrawlJob{}} =
                Manager.start_job(
                  start_urls: ["http://www.some url.com"],
-                 exract: %{"my_data" => %{"my_value" => "#item"}},
+                 extract: %{"my_data" => %{"my_value" => "css:#item"}},
                  plugins: [{ExportJsonl, dir: "tmp/data"}]
                )
+
+      :timer.sleep(500)
 
       # assert %CrawlJob.Metrics{
       #   extracted: 1,
@@ -111,10 +110,5 @@ defmodule Crawldis.ManagerTest do
       assert jsonl =~ "my_value"
       refute jsonl =~ "div"
     end
-  end
-
-  defp start_job(_) do
-    {:ok, job} = Manager.start_job(@job)
-    {:ok, job: job}
   end
 end

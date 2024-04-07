@@ -39,4 +39,7 @@ defmodule Crawldis.Utils do
   def self do
     Node.self() |> Atom.to_string()
   end
+
+  def unwrap(mod) when is_atom(mod), do: {mod, []}
+  def unwrap({mod, opts}) when is_list(opts), do: {mod, opts}
 end

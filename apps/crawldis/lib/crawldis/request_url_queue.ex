@@ -1,14 +1,15 @@
-defmodule Crawldis.RequestUrlProducer do
+defmodule Crawldis.RequestUrlQueue do
   @moduledoc false
   use GenStage
-  alias Crawldis.CrawlJob
+  alias Crawldis.RequestorPipeline
 
   @impl true
-  def init([%CrawlJob{} = job]) do
+  def init(job) do
     {:producer,
      %{
        demand: 0,
-       queue: :queue.from_list(job.start_urls)
+       queue: :queue.from_list(job.start_urls),
+       crawl_job_id: job.id
      }}
   end
 
@@ -25,7 +26,8 @@ defmodule Crawldis.RequestUrlProducer do
         {0, :queue.to_list(demanded_queue), queue}
       end
 
-    {:noreply, to_message(demanded), %{state | queue: queue, demand: rem}}
+    {:noreply, to_message(demanded, state.crawl_job_id),
+     %{state | queue: queue, demand: rem}}
   end
 
   # Called to insert urls into the queue.
@@ -42,16 +44,16 @@ defmodule Crawldis.RequestUrlProducer do
         {[], queue}
       end
 
-    {:noreply, to_message(demanded), %{state | queue: queue}}
+    {:noreply, to_message(demanded, state.crawl_job_id),
+     %{state | queue: queue}}
   end
 
-  defp to_message(urls) do
+  defp to_message(urls, crawl_job_id) do
     for url <- urls do
-      %Broadway.Message{data: url, acknowledger: {__MODULE__, :ack, 3}}
+      %Broadway.Message{
+        data: url,
+        acknowledger: {RequestorPipeline, crawl_job_id, nil}
+      }
     end
-  end
-
-  def ack(_ref, _successful, _failed) do
-    :ok
   end
 end

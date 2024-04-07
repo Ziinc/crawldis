@@ -17,19 +17,16 @@ defmodule Crawldis.Application do
       case env do
         :test ->
           [
+            Crawldis.Fetcher.HttpFetcher,
             {Registry, keys: :unique, name: Crawldis.CounterRegistry},
-            {Registry,
-             [name: Crawldis.ManagerRegistry, keys: :unique, members: :auto]}
+            {Registry, [name: Crawldis.ManagerRegistry, keys: :unique]}
           ] ++ common
 
         _ ->
           [
-            Crawldis.Cluster,
-            Crawldis.RequestQueue,
             Crawldis.Manager,
-            Crawldis.Connector,
             Crawldis.Fetcher.HttpFetcher,
-            Crawldis.RequestPipeline,
+            {Registry, [name: Crawldis.ManagerRegistry, keys: :unique]},
             {Registry, keys: :unique, name: Crawldis.CounterRegistry}
           ] ++ common
       end

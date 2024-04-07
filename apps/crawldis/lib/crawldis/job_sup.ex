@@ -1,7 +1,8 @@
 defmodule Crawldis.JobSup do
   @moduledoc false
   alias Crawldis.Manager
-
+  alias Crawldis.RequestorPipeline
+  alias Crawldis.ExportPipeline
   use GenServer
 
   def start_link(crawl_job) do
@@ -12,7 +13,14 @@ defmodule Crawldis.JobSup do
 
   @impl true
   def init(crawl_job) do
-    children = []
+    for {plugin, opts} <- crawl_job.plugins do
+      plugin.init(opts)
+    end
+
+    children = [
+      {ExportPipeline, crawl_job},
+      {RequestorPipeline, crawl_job}
+    ]
 
     {:ok, _pid} = Supervisor.start_link(children, strategy: :one_for_one)
     {:ok, crawl_job}

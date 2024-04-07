@@ -9,12 +9,18 @@ defmodule Crawldis.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
+      elixirc_paths: elixirc_paths(Mix.env()),
       build_path: "../../_build",
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock"
     ]
   end
+
+  # Specifies which paths to compile per environment.
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
+
 
   # Run "mix help compile.app" to learn about applications.
   def application do
@@ -37,7 +43,9 @@ defmodule Crawldis.MixProject do
       {:telemetry, "~> 1.0"},
       {:phoenix_client, "~> 0.3"},
       {:typed_struct, "~> 0.3.0"},
-      {:mimic, "~> 1.7", only: :test}
+      {:mimic, "~> 1.7", only: :test},
+      {:meeseeks, "~> 0.17.0"},
+      {:jason, "~> 1.4"}
     ]
   end
 
