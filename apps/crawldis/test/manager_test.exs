@@ -35,18 +35,42 @@ defmodule Crawldis.ManagerTest do
     assert [] == Manager.list_jobs()
   end
 
-  test "max_request_concurrency" do
-
+  test "rate_limiting" do
     HttpFetcher
-    |> expect( :fetch, 2,  fn _req ->
+    |> expect(:fetch, 1, fn _req ->
+      {:ok, %Tesla.Env{status: 200, body: "some body"}}
+    end)
+
+    assert {:ok, _} =
+             Manager.start_job(
+               start_urls: [
+                 "http://www.some url.com",
+                 "http://www.some url2.com",
+                 "http://www.some url3.com",
+                 "http://www.some url4.com"
+               ],
+               max_request_rate_per_sec: 1
+             )
+
+    :timer.sleep(500)
+  end
+
+  test "max_request_concurrency" do
+    HttpFetcher
+    |> expect(:fetch, 2, fn _req ->
       :timer.sleep(1000)
       {:ok, %Tesla.Env{status: 200, body: "some body"}}
     end)
 
+    assert {:ok, _} =
+             Manager.start_job(
+               start_urls: [
+                 "http://www.some url.com",
+                 "http://www.some url2.com"
+               ],
+               max_request_concurrency: 2
+             )
 
-    assert {:ok, _} = Manager.start_job(
-      start_urls: ["http://www.some url.com", "http://www.some url2.com"],
-      max_request_concurrency: 2)
     :timer.sleep(200)
   end
 

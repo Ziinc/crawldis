@@ -19,8 +19,10 @@ defmodule Crawldis.RequestorPipeline do
       producer: [
         module: {RequestUrlQueue, crawl_job},
         concurrency: 1,
-        allowed_messages: crawl_job.max_request_rate_per_sec,
-        interval: 1_000
+        rate_limiting: [
+          allowed_messages: crawl_job.max_request_rate_per_sec,
+          interval: 1_000
+        ]
       ],
       processors: [
         default: [concurrency: crawl_job.max_request_concurrency, max_demand: 1]
