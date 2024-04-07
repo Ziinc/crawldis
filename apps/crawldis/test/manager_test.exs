@@ -35,7 +35,7 @@ defmodule Crawldis.ManagerTest do
     assert [] == Manager.list_jobs()
   end
 
-  test "max_concurrent_requests" do
+  test "max_request_concurrency" do
 
     HttpFetcher
     |> expect( :fetch, 2,  fn _req ->
@@ -46,7 +46,7 @@ defmodule Crawldis.ManagerTest do
 
     assert {:ok, _} = Manager.start_job(
       start_urls: ["http://www.some url.com", "http://www.some url2.com"],
-      max_concurrent_requests: 2)
+      max_request_concurrency: 2)
     :timer.sleep(200)
   end
 

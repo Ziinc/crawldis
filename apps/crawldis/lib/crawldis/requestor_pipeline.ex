@@ -18,10 +18,12 @@ defmodule Crawldis.RequestorPipeline do
       name: Manager.via(__MODULE__, crawl_job.id),
       producer: [
         module: {RequestUrlQueue, crawl_job},
-        concurrency: 1
+        concurrency: 1,
+        allowed_messages: crawl_job.max_request_rate_per_sec,
+        interval: 1_000
       ],
       processors: [
-        default: [concurrency: crawl_job.max_concurrent_requests, max_demand: 1]
+        default: [concurrency: crawl_job.max_request_concurrency, max_demand: 1]
       ],
       context: crawl_job
     )

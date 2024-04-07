@@ -7,7 +7,7 @@ defmodule Crawldis.CrawlJob do
 
   typedstruct do
     field(:id, String.t())
-    field(:max_concurrent_requests, non_neg_integer(), default: 5)
+    field(:max_request_concurrency, non_neg_integer(), default: 5)
     field(:start_urls, [String.t()])
     field(:metrics, __MODULE__.Metrics.t())
     field(:extract, %{String.t() => map()}, default: %{})
