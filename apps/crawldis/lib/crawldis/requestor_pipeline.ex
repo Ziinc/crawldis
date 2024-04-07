@@ -7,6 +7,7 @@ defmodule Crawldis.RequestorPipeline do
   alias Crawldis.RequestUrlQueue
   alias Crawldis.ExportPipeline
   alias Crawldis.Manager
+  alias Crawldis.CrawlState
   alias Crawldis.Fetcher.HttpFetcher
   import Meeseeks.CSS
   import Meeseeks.XPath
@@ -50,10 +51,11 @@ defmodule Crawldis.RequestorPipeline do
     %Request{url: url}
   end
 
-  defp do_request(%Request{} = request, _crawl_job) do
+  defp do_request(%Request{} = request, crawl_job) do
     with {:ok, %Tesla.Env{status: status} = resp} when status < 400 <-
            HttpFetcher.fetch(request) do
       # Requestor.increment(resp.crawl_job_id, :scraped)
+      CrawlState.touch_last_request_at(crawl_job.id)
       %{request | response: resp}
     end
   end

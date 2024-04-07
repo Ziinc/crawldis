@@ -55,6 +55,30 @@ defmodule Crawldis.ManagerTest do
     :timer.sleep(500)
   end
 
+  test "shutdown_timeout_sec" do
+    assert {:ok, _} =
+             Manager.start_job(
+               start_urls: [
+                 "http://www.some url.com"
+               ],
+               shutdown_timeout_sec: 0.1
+             )
+
+    :timer.sleep(1000)
+    assert [] == Manager.list_jobs()
+  end
+
+  test "shutdown_timeout_sec with no requests" do
+    assert {:ok, _} =
+             Manager.start_job(
+               start_urls: [],
+               shutdown_timeout_sec: 0.1
+             )
+
+    :timer.sleep(1000)
+    assert [] == Manager.list_jobs()
+  end
+
   test "max_request_concurrency" do
     HttpFetcher
     |> expect(:fetch, 2, fn _req ->
