@@ -35,6 +35,21 @@ defmodule Crawldis.ManagerTest do
     assert [] == Manager.list_jobs()
   end
 
+  test "max_concurrent_requests" do
+
+    HttpFetcher
+    |> expect( :fetch, 2,  fn _req ->
+      :timer.sleep(1000)
+      {:ok, %Tesla.Env{status: 200, body: "some body"}}
+    end)
+
+
+    assert {:ok, _} = Manager.start_job(
+      start_urls: ["http://www.some url.com", "http://www.some url2.com"],
+      max_concurrent_requests: 2)
+    :timer.sleep(200)
+  end
+
   describe "request pipeline" do
     setup do
       on_exit(fn ->

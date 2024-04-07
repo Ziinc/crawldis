@@ -21,7 +21,7 @@ defmodule Crawldis.RequestorPipeline do
         concurrency: 1
       ],
       processors: [
-        default: [concurrency: System.schedulers_online()]
+        default: [concurrency: crawl_job.max_concurrent_requests, max_demand: 1]
       ],
       context: crawl_job
     )
