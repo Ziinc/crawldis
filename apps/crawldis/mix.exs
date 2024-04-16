@@ -45,7 +45,9 @@ defmodule Crawldis.MixProject do
       {:typed_struct, "~> 0.3.0"},
       {:mimic, "~> 1.7", only: :test},
       {:meeseeks, "~> 0.17.0"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4"},
+      {:params, "~> 2.0"},
+      {:ecto_sql, "~> 3.11"}
     ]
   end
 

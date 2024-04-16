@@ -4,6 +4,9 @@ defmodule Crawldis.Application do
   @moduledoc false
 
   use Application
+  require Logger
+  alias Crawldis.Config
+  alias Crawldis.Manager
 
   @impl true
   def start(_type, _args) do
@@ -28,12 +31,39 @@ defmodule Crawldis.Application do
             Crawldis.Fetcher.HttpFetcher,
             {Registry, [name: Crawldis.ManagerRegistry, keys: :unique]},
             {Registry, keys: :unique, name: Crawldis.CounterRegistry}
-          ] ++ common
+          ] ++
+            common ++
+            [
+              {Task, &startup_task/0}
+            ]
       end
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Crawldis.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp startup_task do
+    config = Application.get_env(:crawldis, :config_file)
+
+    if config do
+      Logger.info("App configuration file found (#{config})")
+    end
+
+    # start jobs
+    with {:ok, str} <- Config.read_config_file(),
+         {:ok, config} <- Config.parse_config(str) do
+      dbg(config)
+
+      Logger.info("Found #{Enum.count(config.crawl_jobs)} crawl job(s)")
+
+      for job <- config.crawl_jobs do
+        Manager.start_job(job)
+      end
+    else
+      {:error, :enoent} ->
+        Logger.warning("No config file found")
+    end
   end
 end

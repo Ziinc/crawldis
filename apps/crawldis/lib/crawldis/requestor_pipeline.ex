@@ -57,6 +57,10 @@ defmodule Crawldis.RequestorPipeline do
       # Requestor.increment(resp.crawl_job_id, :scraped)
       CrawlState.touch_last_request_at(crawl_job.id)
       %{request | response: resp}
+    else
+      {:ok, %Tesla.Env{status: status} = resp} when status >= 400 ->
+        Logger.warning("Bad request")
+        %{request | response: resp}
     end
   end
 
@@ -85,7 +89,7 @@ defmodule Crawldis.RequestorPipeline do
   end
 
   defp do_extraction(doc, {key, "css:" <> rule}) when is_binary(rule) do
-    {key, Meeseeks.one(doc, css(rule)) |> Meeseeks.text()}
+    {key, Meeseeks.one(doc, css(rule)) |> Meeseeks.text()} |> dbg()
   end
 
   defp do_extraction(doc, {key, rules}) when is_list(rules) do
