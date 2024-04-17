@@ -1,18 +1,16 @@
 {
-    "max_request_concurrency": 1,
-    "max_request_rate_per_sec": 1,
-    "plugins": [
-        ["ExportJsonl", {"dir": "tmp"}]
-    ],
-    "crawl_jobs": [
-        {
-            "start_urls": ["https://www.tzeyiing.com/posts"],
-            "extract": {
-                "posts": {
-                    "title": "css:nav ul li a",
-                    "url": "xpath://*/nav//ul/li/a/@href"
-                }
-            }
+  "max_request_concurrency": 1,
+  "max_request_rate_per_sec": 1,
+  "plugins": [["ExportJsonl", { "dir": "tmp" }]],
+  "crawl_jobs": [
+    {
+      "start_urls": ["https://www.tzeyiing.com/posts"],
+      "extract": {
+        "posts": {
+          "title": "css:nav ul li a",
+          "url": "xpath://*/nav//ul/li/a/@href"
         }
-    ]
+      }
+    }
+  ]
 }

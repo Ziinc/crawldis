@@ -1,5 +1,7 @@
 # Crawldis
 
+![](https://img.shields.io/docker/pulls/ziinc/crawldis?label=ziinc%2Fcrawldis&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fziinc%2Fcrawldis)
+
 Delarative crawler. Deploy and remote control spiders. Fully self-hostable.
 
 ### Features
@@ -15,17 +17,61 @@ Delarative crawler. Deploy and remote control spiders. Fully self-hostable.
    - Flatfile: CSV, TSV, JSONL
    - Webhooks
 
+### Usage
+
+1. Add config file, `init.json`
+
+```json
+{
+  "max_request_concurrency": 1,
+  "max_request_rate_per_sec": 1,
+  "plugins": [["ExportJsonl", { "dir": "tmp" }]],
+  "crawl_jobs": [
+    {
+      "start_urls": ["https://www.tzeyiing.com/posts"],
+      "extract": {
+        "posts": {
+          "title": "css:nav ul li a",
+          "url": "xpath://*/nav//ul/li/a/@href"
+        }
+      }
+    }
+  ]
+}
+```
+
+2. Create a docker-compose file
+
+```bash
+version: "3.9"
+services:
+  worker:
+    image: ziinc/crawldis:latest
+    environment:
+      CRAWLDIS_CONFIG_FILE: init.json
+    volumes:
+      - ./init.json:/app/rel/init.json
+```
+
+## Documentation
+
+### Environment Variables
+
+- `CRAWLDIS_CONFIG_FILE`: (string) path to configuration json file.
+
 ## Development
 
 ```bash
-# start containers
-make start
+# build and publish containers
+make docker.build
+make docker.publish
 
-# get an iex shell
-make iex.{req|pro}
+# hardcoded version from mix.exs
+make version
 
-# web
-mix phx.server
+# setup env
+mix setup
+
+# start app
+iex -S mix
 ```
-
-### 

@@ -8,7 +8,12 @@ defmodule CrawldisUmbrella.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       elixir: "~> 1.10",
-      aliases: aliases()
+      aliases: aliases(),
+      releases: [
+        crawldis: [
+          applications: [crawldis: :permanent]
+        ]
+      ]
     ]
   end
 

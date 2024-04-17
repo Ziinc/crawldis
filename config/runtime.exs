@@ -2,8 +2,9 @@ import Config
 
 config :crawldis_panel, :env, config_env()
 config :crawldis, :env, config_env()
+config :crawldis, config_file: System.get_env("CRAWLDIS_CONFIG_FILE")
 
-if config_env() == :prod do
+if get_application(:crawldis_panel) do
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """
