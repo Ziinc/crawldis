@@ -64,14 +64,14 @@ defmodule Crawldis.RequestorPipeline do
     end
   end
 
-  defp extract_data(%Request{response: response} = request, crawl_job) do
+  def extract_data(%Request{response: response} = request, crawl_job) do
     body = response.body
 
     extracted =
       for {dtype, extract_map} <- crawl_job.extract, into: %{} do
         reduced =
           for {k, v} <- extract_map, into: %{} do
-            do_extraction(body, {k, v})
+            do_extraction(body, {k, v}, nil)
           end
 
         {dtype, reduced}
@@ -80,26 +80,49 @@ defmodule Crawldis.RequestorPipeline do
     %{request | extracted_data: extracted}
   end
 
-  defp do_extraction(doc, {key, %{} = nested}) do
-    {key, Enum.map(nested, fn {k, v} -> do_extraction(doc, {k, v}) end)}
+  defp do_extraction(doc, {key, %{} = nested}, _type) do
+    {key, Enum.map(nested, fn {k, v} -> do_extraction(doc, {k, v}, nil) end)}
   end
 
-  defp do_extraction(doc, {key, "xpath:" <> rule}) when is_binary(rule) do
+  defp do_extraction(doc, {key, "xpath:" <> rule}, type) when is_binary(rule) do
+    apply(Meeseeks, type || :one, [doc, xpath(rule)])
+    |> then(fn
+      r when is_list(r) -> Enum.map(r, &Meeseeks.text/1)
+      r -> Meeseeks.text(r)
+    end)
+
     {key, Meeseeks.one(doc, xpath(rule)) |> Meeseeks.text()}
   end
 
-  defp do_extraction(doc, {key, "css:" <> rule}) when is_binary(rule) do
-    {key, Meeseeks.one(doc, css(rule)) |> Meeseeks.text()} |> dbg()
+  defp do_extraction(doc, {key, "css:" <> rule}, type) when is_binary(rule) do
+    regex = ~r"(.+)\:\:attr\([\"\'](.+)[\"\']\)$"
+    run = Regex.run(regex, rule)
+
+    result =
+      case run do
+        [_, rule_without_attr, attr] ->
+          apply(Meeseeks, type || :one, [doc, css(rule_without_attr)])
+          |> then(fn
+            r when is_list(r) -> Enum.map(r, &Meeseeks.attr(&1, attr))
+            r -> Meeseeks.attr(r, attr)
+          end)
+
+        _ ->
+          apply(Meeseeks, type || :one, [doc, css(rule)])
+          |> then(fn
+            r when is_list(r) -> Enum.map(r, &Meeseeks.text/1)
+            r -> Meeseeks.text(r)
+          end)
+      end
+
+    {key, result}
   end
 
-  defp do_extraction(doc, {key, rules}) when is_list(rules) do
+  defp do_extraction(doc, {key, rules}, _type) when is_list(rules) do
     extracted =
-      Enum.flat_map(rules, fn
-        "css:" <> rule ->
-          Meeseeks.all(doc, css(rule)) |> Enum.map(&Meeseeks.text/2)
-
-        "xpath:" <> rule ->
-          Meeseeks.all(doc, xpath(rule)) |> Enum.map(&Meeseeks.text/2)
+      Enum.flat_map(rules, fn rule ->
+        {key, results} = do_extraction(doc, {key, rule}, :all)
+        results
       end)
 
     {key, extracted}

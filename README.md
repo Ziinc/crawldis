@@ -55,6 +55,19 @@ services:
 
 ## Documentation
 
+### Crawl Jobs
+
+#### Extraction
+
+XPath and CSS selectors are supported.
+
+##### Attribute Extraction
+
+Attribute extraction is supported for both CSS and XPath:
+
+- `css: ul nav::attr('href')`
+- `xpath: //ul/nav/@href`
+
 ### Environment Variables
 
 - `CRAWLDIS_CONFIG_FILE`: (string) path to configuration json file.
