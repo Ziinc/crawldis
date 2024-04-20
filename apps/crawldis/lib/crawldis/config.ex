@@ -1,5 +1,4 @@
 defmodule Crawldis.Config do
-  alias Crawldis.CrawlJob
   require Logger
   @moduledoc false
   use Params.Schema, %{

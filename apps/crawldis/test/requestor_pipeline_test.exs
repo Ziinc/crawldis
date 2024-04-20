@@ -5,96 +5,93 @@ defmodule Crawldis.RequestorPipelineTest do
   alias Crawldis.Request
   alias Crawldis.CrawlJob
 
-  describe "extract_data/1 css" do
+  describe "extract_data/1" do
     test "can select normal node" do
-      req = %Request{
-        response: %{
-          body: """
-          <html>
-            <div>123 <span>testing</span></div>
-            <div>345</div>
-          </html>
-          """
-        }
-      }
+      body = """
+      <html>
+        <div>123 <span>testing</span></div>
+        <div>345</div>
+      </html>
+      """
 
-      job = %CrawlJob{extract: %{"my_data" => %{"value" => "css: div span"}}}
+      for rule <- [
+            "css: div span",
+            "xpath: //div/span"
+          ] do
+        rules = %{"my_data" => %{"value" => rule}}
 
-      assert %{
-               extracted_data: %{
+        assert %{
                  "my_data" => %{"value" => "testing"}
-               }
-             } = RequestorPipeline.extract_data(req, job)
+               } = run_extraction(body, rules)
+      end
     end
 
     test "can select multiple nodes" do
-      req = %Request{
-        response: %{
-          body: """
-          <html>
-            <div>123 <span>testing</span></div>
-            <div>345 <span>tester</span></div>
-          </html>
-          """
-        }
-      }
+      body = """
+      <html>
+        <div>123 <span>testing</span></div>
+        <div>345 <span>tester</span></div>
+      </html>
+      """
 
-      job = %CrawlJob{extract: %{"my_data" => %{"value" => ["css: div span"]}}}
+      for rule <- ["css: div span", "xpath: //div/span"] do
+        rules = %{"my_data" => %{"value" => [rule]}}
 
-      assert %{
-               extracted_data: %{
+        assert %{
                  "my_data" => %{"value" => [_, _]}
-               }
-             } = RequestorPipeline.extract_data(req, job)
+               } = run_extraction(body, rules)
+      end
     end
 
     test "can select node attributes" do
-      req = %Request{
-        response: %{
-          body: """
-          <html>
-            <div>123 <span data-field="abc"">testing</span></div>
-          </html>
-          """
-        }
-      }
+      body = """
+      <html>
+        <div>123 <span data-field="abc">testing</span></div>
+      </html>
+      """
 
-      job = %CrawlJob{
-        extract: %{
-          "my_data" => %{"value" => "css: div span::attr('data-field')"}
+      for rule <- [
+            "css: div span::attr('data-field')",
+            "xpath: //div/span/@data-field"
+          ] do
+        rules = %{
+          "my_data" => %{"value" => rule}
         }
-      }
 
-      assert %{
-               extracted_data: %{
+        assert %{
                  "my_data" => %{"value" => "abc"}
-               }
-             } = RequestorPipeline.extract_data(req, job)
+               } = run_extraction(body, rules)
+      end
     end
 
     test "can select multiple node attributes" do
-      req = %Request{
-        response: %{
-          body: """
-          <html>
-            <div>123 <span data-field="abc"">testing</span></div>
-            <div>123 <span data-field="def"">testing</span></div>
-          </html>
-          """
-        }
-      }
+      body = """
+      <html>
+        <div>123 <span data-field="abc">testing</span></div>
+        <div>123 <span data-field="def">testing</span></div>
+      </html>
+      """
 
-      job = %CrawlJob{
-        extract: %{
-          "my_data" => %{"value" => ["css: div span::attr('data-field')"]}
+      for rule <- [
+            "css: div span::attr('data-field')",
+            "xpath: //div/span/@data-field"
+          ] do
+        rules = %{
+          "my_data" => %{"value" => [rule]}
         }
-      }
 
-      assert %{
-               extracted_data: %{
-                 "my_data" => %{"value" => [_, _]}
-               }
-             } = RequestorPipeline.extract_data(req, job)
+        assert %{
+                 "my_data" => %{"value" => [_, _] = values}
+               } = run_extraction(body, rules)
+
+        assert "abc" in values and "def" in values
+      end
     end
+  end
+
+  defp run_extraction(body, rules) do
+    %Request{response: %{body: body}}
+    |> RequestorPipeline.extract_data(%CrawlJob{extract: rules})
+    |> Map.get(:extracted_data)
   end
 end

@@ -85,13 +85,27 @@ defmodule Crawldis.RequestorPipeline do
   end
 
   defp do_extraction(doc, {key, "xpath:" <> rule}, type) when is_binary(rule) do
-    apply(Meeseeks, type || :one, [doc, xpath(rule)])
-    |> then(fn
-      r when is_list(r) -> Enum.map(r, &Meeseeks.text/1)
-      r -> Meeseeks.text(r)
-    end)
+    regex = ~r"(.+)\/\@(.+)$"
+    run = Regex.run(regex, rule)
 
-    {key, Meeseeks.one(doc, xpath(rule)) |> Meeseeks.text()}
+    result =
+      case run do
+        [_, rule_without_attr, attr] ->
+          apply(Meeseeks, type || :one, [doc, xpath(rule_without_attr)])
+          |> then(fn
+            r when is_list(r) -> Enum.map(r, &Meeseeks.attr(&1, attr))
+            r -> Meeseeks.attr(r, attr)
+          end)
+
+        _ ->
+          apply(Meeseeks, type || :one, [doc, xpath(rule)])
+          |> then(fn
+            r when is_list(r) -> Enum.map(r, &Meeseeks.text/1)
+            r -> Meeseeks.text(r)
+          end)
+      end
+
+    {key, result}
   end
 
   defp do_extraction(doc, {key, "css:" <> rule}, type) when is_binary(rule) do
@@ -121,7 +135,7 @@ defmodule Crawldis.RequestorPipeline do
   defp do_extraction(doc, {key, rules}, _type) when is_list(rules) do
     extracted =
       Enum.flat_map(rules, fn rule ->
-        {key, results} = do_extraction(doc, {key, rule}, :all)
+        {_key, results} = do_extraction(doc, {key, rule}, :all)
         results
       end)
 
