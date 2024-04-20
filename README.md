@@ -59,7 +59,7 @@ services:
 
 #### Extraction
 
-XPath and CSS selectors are supported.
+XPath, CSS, and Regex selectors are supported. 
 
 ##### Attribute Extraction
 
