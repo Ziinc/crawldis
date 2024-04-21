@@ -150,7 +150,7 @@ defmodule Crawldis.RequestorPipelineTest do
     <html>
       <div>omg 123 testing 123</div>
       <div other="value">123
-        <span data-field="abc">testing 1234 and testing 1236</span>
+        <span data-field="abc">testing 1234 and testin 1236</span>
         <span data-field="def">testing 134 and testing 236</span>
       </div>
       <div other="testing">123 <span data-field="abc">testing 134 and testing 1336</span></div>
@@ -159,7 +159,7 @@ defmodule Crawldis.RequestorPipelineTest do
     """
 
     rule =
-      "css: div[other='value'] |> span[@data-field='abc'] |> regex: testing ([1-4]+)"
+      "css: div[other='value'] |> css:span[data-field='abc'] |> regex: testing ([1-4]+)"
 
     rules = %{
       "my_data" => %{

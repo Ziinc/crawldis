@@ -90,6 +90,37 @@ defmodule Crawldis.RequestorPipeline do
      end)}
   end
 
+  defp do_extraction(doc, {key, rule}, %{in_chain: nil} = state)
+       when is_binary(rule) do
+    if rule =~ "|>" do
+      rules =
+        String.split(rule, "|>")
+        |> Enum.map(&String.trim/1)
+
+      Enum.reduce(rules, nil, fn
+        r, nil ->
+          do_extraction(doc, {key, r}, %{state | in_chain: true})
+
+        r, {_k, prev} when is_list(prev) ->
+          resultset =
+            Enum.map(prev, fn input ->
+              {_k, result} =
+                do_extraction(input, {key, r}, %{state | in_chain: true})
+
+              if is_list(result), do: result, else: [result]
+            end)
+            |> List.flatten()
+
+          {key, resultset}
+
+        r, {_k, prev} when is_binary(prev) ->
+          do_extraction(prev, {key, r}, %{state | in_chain: true})
+      end)
+    else
+      do_extraction(doc, {key, rule}, %{state | in_chain: false})
+    end
+  end
+
   defp do_extraction(doc, {key, "regex:" <> rule}, state)
        when is_binary(rule) do
     rule = String.trim(rule)
@@ -125,10 +156,7 @@ defmodule Crawldis.RequestorPipeline do
 
         _ ->
           apply(Meeseeks, state.type || :one, [doc, xpath(rule)])
-          |> then(fn
-            r when is_list(r) -> Enum.map(r, &Meeseeks.text/1)
-            r -> Meeseeks.text(r)
-          end)
+          |> process_meeseeks_result(state)
       end
 
     {key, result}
@@ -149,10 +177,7 @@ defmodule Crawldis.RequestorPipeline do
 
         _ ->
           apply(Meeseeks, state.type || :one, [doc, css(rule)])
-          |> then(fn
-            r when is_list(r) -> Enum.map(r, &Meeseeks.text/1)
-            r -> Meeseeks.text(r)
-          end)
+          |> process_meeseeks_result(state)
       end
 
     {key, result}
@@ -167,6 +192,15 @@ defmodule Crawldis.RequestorPipeline do
 
     {key, extracted}
   end
+
+  defp process_meeseeks_result(result, state) when is_list(result),
+    do: Enum.map(result, fn r -> process_meeseeks_result(r, state) end)
+
+  defp process_meeseeks_result(result, %{in_chain: true}),
+    do: Meeseeks.html(result)
+
+  defp process_meeseeks_result(result, %{in_chain: false}),
+    do: Meeseeks.text(result)
 
   # defp extract_artifacts(%Request{artifact_extractor: nil} = request) do
   #   %{request | artifacts: [request.body]}

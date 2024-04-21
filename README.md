@@ -59,7 +59,22 @@ services:
 
 #### Extraction
 
-XPath, CSS, and Regex selectors are supported. 
+XPath, CSS, and Regex selectors are supported.
+
+##### Selector Chaining
+
+Selectors can be chained using the `|>` "pipe right" operator, where each selector will select based on the previously selected nodes. All selectors can be mixed together.
+
+- `css: ul li |> xpath: /div[@data-val]`
+  - This will take all `<li>` nodes, and then iterate over them and extract out the inner text of all `<div data-val="...">` nodes.
+- `xpath: //h1 |> regex:My name is .+$`
+  - This will take all `<h1>` nodes and perform a regex scan over the inner text, extracting out all matching text, such as "My name is Bob".
+- `xpath: //h1 |> regex:My name is (.+)$`
+  - This will take all `<h1>` nodes and perform a regex scan over the inner text, extracting out all matching text groups only , such as "Bob".
+- `regex: Last updated at\: (.+)$`
+  - Extracts out the response body and performs a regex scan over it, retrieving all matching groups that have the same pattern, such as "15 July 2012".
+
+There is no limit on the number of selectors that can be chained.
 
 ##### Attribute Extraction
 
