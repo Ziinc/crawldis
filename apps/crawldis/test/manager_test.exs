@@ -1,10 +1,11 @@
 defmodule Crawldis.ManagerTest do
-  use Crawldis.CrawlCase
+  use Crawldis.CrawlCase, async: false
   alias Crawldis.Manager
   alias Crawldis.CrawlJob
   alias Crawldis.Fetcher.HttpFetcher
   alias Crawldis.JobDynSup
   alias Crawldis.Plugins.ExportJsonl
+  alias Crawldis.Config
 
   setup do
     start_supervised!(Crawldis.Manager)
@@ -96,6 +97,41 @@ defmodule Crawldis.ManagerTest do
              )
 
     :timer.sleep(200)
+  end
+
+  describe "global configs" do
+    setup do
+      initial = Application.get_env(:crawldis, :init_config)
+
+      on_exit(fn ->
+        Application.put_env(:crawldis, :init_config, initial)
+      end)
+    end
+
+    test "acts as fallback values - max_request_concurrency" do
+      config = %Config{max_request_concurrency: 1}
+      assert :ok = Config.load_config(config)
+
+      HttpFetcher
+      |> expect(:fetch, 1, fn req ->
+        dbg(req)
+        {:ok, %Tesla.Env{status: 200, body: "some body"}}
+      end)
+
+      assert {:ok, _} =
+               Manager.start_job(
+                 start_urls: [
+                   "http://www.some url.com",
+                   "http://www.some url2.com",
+                   "http://www.some url3.com",
+                   "http://www.some url4.com",
+                   "http://www.some url5.com"
+                 ]
+               )
+
+      :timer.sleep(500)
+      verify!()
+    end
   end
 
   describe "request pipeline" do

@@ -1,10 +1,12 @@
 defmodule Crawldis.Config do
-  require Logger
   @moduledoc false
+  alias Crawldis.CrawlJob
+  require Logger
+
   use Params.Schema, %{
-    max_request_concurrency: :integer,
-    max_request_rate_per_sec: :integer,
-    shutdown_timeout_sec: :integer,
+    max_request_concurrency: [field: :integer, default: 5],
+    max_request_rate_per_sec: [field: :integer, default: 10],
+    shutdown_timeout_sec: [field: :integer, default: 5],
     plugins: [Crawldis.EctoPlugin],
     crawl_jobs: [
       %{
@@ -44,7 +46,21 @@ defmodule Crawldis.Config do
     end
   end
 
+  @doc "Sets config to the :init_config env"
+  @spec load_config(%__MODULE__{}) :: :ok
   def load_config(%__MODULE__{} = config) do
     Application.put_env(:crawldis, :init_config, config)
+  end
+
+  @doc "Resolves configuration values at either global or job level"
+  @spec get_config(atom()) :: term() | nil
+  @spec get_config(atom(), CrawlJob.t()) :: term() | nil
+  def get_config(key) do
+    env = Application.get_env(:crawldis, :init_config) || %__MODULE__{}
+    Map.get(env, key)
+  end
+
+  def get_config(key, %CrawlJob{} = job) do
+    Map.get(job, key) || get_config(key)
   end
 end

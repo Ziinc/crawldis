@@ -83,7 +83,10 @@ Attribute extraction is supported for both CSS and XPath:
 - `css: ul nav::attr('href')`
 - `xpath: //ul/nav/@href`
 
-### Environment Variables
+### Configuration
+Configuration can be at either the global level or the job level. Job level will take precedence over the global level and will override any provided setting.
+
+#### Environment Variables
 
 - `CRAWLDIS_CONFIG_FILE`: (string) path to configuration json file.
 

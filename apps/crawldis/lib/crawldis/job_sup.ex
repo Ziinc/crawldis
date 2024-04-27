@@ -3,6 +3,7 @@ defmodule Crawldis.JobSup do
   alias Crawldis.Manager
   alias Crawldis.RequestorPipeline
   alias Crawldis.ExportPipeline
+  alias Crawldis.Config
   alias Crawldis.CrawlState
   use GenServer
 
@@ -45,12 +46,12 @@ defmodule Crawldis.JobSup do
     cond do
       crawl_state.last_request_at == nil and
           DateTime.diff(DateTime.utc_now(), crawl_state.started_at) >=
-            job.shutdown_timeout_sec ->
+            shutdown_timeout(job) ->
         {:stop, :normal, job}
 
       crawl_state.last_request_at != nil and
           DateTime.diff(DateTime.utc_now(), crawl_state.last_request_at) >=
-            job.shutdown_timeout_sec ->
+            shutdown_timeout(job) ->
         {:stop, :normal, job}
 
       true ->
@@ -59,13 +60,17 @@ defmodule Crawldis.JobSup do
     end
   end
 
-  defp loop(crawl_job) do
-    factor = if(crawl_job.shutdown_timeout_sec > 0, do: 400, else: 200)
+  defp loop(job) do
+    factor = if(shutdown_timeout(job) > 0, do: 400, else: 200)
 
     Process.send_after(
       self(),
       :maybe_shutdown,
-      round(factor * crawl_job.shutdown_timeout_sec)
+      round(factor * shutdown_timeout(job))
     )
+  end
+
+  defp shutdown_timeout(job) do
+    Config.get_config(:shutdown_timeout_sec, job)
   end
 end

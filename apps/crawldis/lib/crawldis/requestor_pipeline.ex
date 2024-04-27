@@ -7,6 +7,7 @@ defmodule Crawldis.RequestorPipeline do
   alias Crawldis.RequestUrlQueue
   alias Crawldis.ExportPipeline
   alias Crawldis.Manager
+  alias Crawldis.Config
   alias Crawldis.CrawlState
   alias Crawldis.Fetcher.HttpFetcher
   import Meeseeks.CSS
@@ -15,18 +16,24 @@ defmodule Crawldis.RequestorPipeline do
   require Logger
 
   def start_link(crawl_job) do
+    dbg(crawl_job)
+
     Broadway.start_link(__MODULE__,
       name: Manager.via(__MODULE__, crawl_job.id),
       producer: [
         module: {RequestUrlQueue, crawl_job},
         concurrency: 1,
         rate_limiting: [
-          allowed_messages: crawl_job.max_request_rate_per_sec,
+          allowed_messages:
+            Config.get_config(:max_request_rate_per_sec, crawl_job),
           interval: 1_000
         ]
       ],
       processors: [
-        default: [concurrency: crawl_job.max_request_concurrency, max_demand: 1]
+        default: [
+          concurrency: Config.get_config(:max_request_concurrency, crawl_job),
+          max_demand: 1
+        ]
       ],
       context: crawl_job
     )
