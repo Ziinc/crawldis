@@ -10,5 +10,11 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+  worker:
+    image: ziinc/crawldis:latest
+    environment:
+      CRAWLDIS_CONFIG_FILE: init.json
+    volumes:
+      - ./init.json:/app/rel/init.json
 volumes:
   pgdata:

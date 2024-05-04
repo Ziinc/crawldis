@@ -1,11 +1,22 @@
 import Config
 
+filter_kv =  fn cfg -> Enum.filter(cfg, fn {_k, v} -> v != nil end) end
 config :crawldis_panel, :env, config_env()
 config :crawldis, [
   env: config_env(),
   config_file: System.get_env("CRAWLDIS_CONFIG_FILE")
-]
-|> Enum.filter(fn {k, v} -> v != nil end)
+] |> filter_kv.()
+
+config :logger, [
+  level:  System.get_env("CRAWLDIS_LOG_LEVEL") |> case do
+  "info" -> :info
+  "error" -> :error
+  "warn" -> :warn
+  "warning" -> :warn
+  "debug" -> :debug
+  _ -> nil
+  end
+]|> filter_kv.()
 
 if Application.get_application(:crawldis_panel) do
   database_url =
