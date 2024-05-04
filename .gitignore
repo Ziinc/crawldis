@@ -11,3 +11,4 @@ erl_crash.dump
 .DS_Store
 .idea/
 .write_to_filetests
+tmp/

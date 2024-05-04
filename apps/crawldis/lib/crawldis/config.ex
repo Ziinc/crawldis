@@ -8,6 +8,7 @@ defmodule Crawldis.Config do
     max_request_rate_per_sec: [field: :integer, default: 10],
     system_shutdown_timeout_sec: [field: :integer],
     shutdown_timeout_sec: [field: :integer, default: 5],
+    extract: [field: :map, default: Macro.escape(%{})],
     plugins: [Crawldis.EctoPlugin],
     crawl_jobs: [
       %{
@@ -42,8 +43,13 @@ defmodule Crawldis.Config do
   def parse_config(str) when is_binary(str) do
     with {:ok, map} <- Jason.decode(str) do
       changeset = from(map)
+      config = Params.to_map(changeset)
+      |> Enum.into(%{
+        plugins: [],
+      })
 
-      {:ok, Params.to_map(changeset)}
+      |> dbg()
+      {:ok, struct(__MODULE__, config)}
     end
   end
 
@@ -62,6 +68,6 @@ defmodule Crawldis.Config do
   end
 
   def get_config(key, %CrawlJob{} = job) do
-    Map.get(job, key) || get_config(key)
+    Map.get(job, key ) || get_config(key)
   end
 end

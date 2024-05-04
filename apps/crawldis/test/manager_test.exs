@@ -109,13 +109,22 @@ defmodule Crawldis.ManagerTest do
     end
 
     test "acts as fallback values - max_request_concurrency" do
-      config = %Config{max_request_concurrency: 1}
+      config = %Config{
+        max_request_concurrency: 1,
+        plugins: [{ExportJsonl, dir: "tmp/data"}]
+      }
+
       assert :ok = Config.load_config(config)
 
       HttpFetcher
       |> expect(:fetch, 1, fn req ->
         dbg(req)
         {:ok, %Tesla.Env{status: 200, body: "some body"}}
+      end)
+
+      ExportJsonl
+      |> expect(:export, 1, fn _req, _ ->
+        :ok
       end)
 
       assert {:ok, _} =

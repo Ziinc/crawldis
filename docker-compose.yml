@@ -15,6 +15,9 @@ services:
     environment:
       CRAWLDIS_CONFIG_FILE: init.json
     volumes:
-      - ./init.json:/app/rel/init.json
+      - ./config/crawls/init.json:/app/bin/init.json:ro
+      - type: bind
+        source: ./export
+        target: /app/bin/export
 volumes:
   pgdata:

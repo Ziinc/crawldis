@@ -15,7 +15,9 @@ defmodule Crawldis.JobSup do
 
   @impl true
   def init(crawl_job) do
-    for {plugin, opts} <- crawl_job.plugins do
+    plugins = Config.get_config(:plugins, crawl_job)
+    Logger.debug("Initializing #{Enum.count(plugins)} plugins for job #{crawl_job.id}")
+    for {plugin, opts} <- plugins do
       plugin.init(opts)
     end
 

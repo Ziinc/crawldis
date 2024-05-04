@@ -25,7 +25,7 @@ Delarative crawler. Deploy and remote control spiders. Fully self-hostable.
 {
   "max_request_concurrency": 1,
   "max_request_rate_per_sec": 1,
-  "plugins": [["ExportJsonl", { "dir": "tmp" }]],
+  "plugins": [["ExportJsonl", { "dir": "export" }]],
   "crawl_jobs": [
     {
       "start_urls": ["https://www.tzeyiing.com/posts"],
@@ -39,7 +39,7 @@ Delarative crawler. Deploy and remote control spiders. Fully self-hostable.
   ]
 }
 ```
-
+#### Option 1: using docker compose
 2. Create a docker-compose file
 
 ```bash
@@ -50,9 +50,21 @@ services:
     environment:
       CRAWLDIS_CONFIG_FILE: init.json
     volumes:
-      - ./init.json:/app/rel/init.json
+      - ./init.json:/app/bin/init.json
+      - ./tmp/export:/app/bin/export
 ```
+3. Run the crawler with `docker-compose up`. The crawler will automatically shut down after idling.
 
+#### Option 2: using docker run
+
+```
+docker run -it --rm \
+  --name crawldis_quickstart \
+  -v "$(pwd)"/init.json:/app/bin/init.json \
+  -v "$(pwd)"/export:/app/bin/export \
+  -e CRAWLDIS_CONFIG_FILE=init.json \
+  ziinc/crawldis:latest
+```
 ## Documentation
 
 ### Crawl Jobs

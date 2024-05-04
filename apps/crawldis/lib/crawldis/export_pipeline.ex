@@ -5,6 +5,7 @@ defmodule Crawldis.ExportPipeline do
   alias Broadway.Message
   alias Crawldis.ExtractedQueue
   alias Crawldis.Manager
+  alias Crawldis.Config
 
   def start_link(crawl_job) do
     # run broadway pipeline
@@ -33,7 +34,7 @@ defmodule Crawldis.ExportPipeline do
   end
 
   defp do_export(data, crawl_job) do
-    for {plugin, opts} <- crawl_job.plugins,
+    for {plugin, opts} <- Config.get_config(:plugins, crawl_job),
         Keyword.has_key?(plugin.__info__(:functions), :export) do
       plugin.export(data, opts)
     end

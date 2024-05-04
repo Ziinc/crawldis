@@ -50,7 +50,7 @@ defmodule Crawldis.Application do
     with {:ok, str} <- Config.read_config_file(),
          {:ok, config} <- Config.parse_config(str) do
       Logger.info("Found #{Enum.count(config.crawl_jobs)} crawl job(s)")
-
+      Config.load_config(config)
       for job <- config.crawl_jobs do
         Manager.start_job(job)
       end

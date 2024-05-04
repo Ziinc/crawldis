@@ -16,8 +16,7 @@ defmodule Crawldis.RequestorPipeline do
   require Logger
 
   def start_link(crawl_job) do
-    dbg(crawl_job)
-
+    Logger.debug("Starting RequestorPipeline for job #{crawl_job.id}")
     Broadway.start_link(__MODULE__,
       name: Manager.via(__MODULE__, crawl_job.id),
       producer: [
@@ -75,7 +74,8 @@ defmodule Crawldis.RequestorPipeline do
     body = response.body
 
     extracted =
-      for {dtype, extract_map} <- crawl_job.extract, into: %{} do
+      for {dtype, extract_map} <- Config.get_config(:extract, crawl_job),
+          into: %{} do
         reduced =
           for {k, v} <- extract_map, into: %{} do
             do_extraction(body, {k, v}, %{

@@ -12,8 +12,8 @@ defmodule Crawldis.CrawlJob do
     field(:shutdown_timeout_sec, non_neg_integer())
     field(:start_urls, [String.t()])
     field(:metrics, __MODULE__.Metrics.t())
-    field(:extract, %{String.t() => map()}, default: %{})
-    field(:plugins, [{module(), keyword()}], default: [])
+    field(:extract, %{String.t() => map()}, default: nil)
+    field(:plugins, [{module(), keyword()}], default: nil)
   end
 
   defmodule Metrics do
