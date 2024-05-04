@@ -28,6 +28,7 @@ defmodule Crawldis.Application do
         _ ->
           [
             Crawldis.Manager,
+            Crawldis.AutoShutdownMonitor,
             Crawldis.Fetcher.HttpFetcher,
             {Registry, [name: Crawldis.ManagerRegistry, keys: :unique]},
             {Registry, keys: :unique, name: Crawldis.CounterRegistry}
@@ -45,17 +46,9 @@ defmodule Crawldis.Application do
   end
 
   defp startup_task do
-    config = Application.get_env(:crawldis, :config_file)
-
-    if config do
-      Logger.info("App configuration file found (#{config})")
-    end
-
     # start jobs
     with {:ok, str} <- Config.read_config_file(),
          {:ok, config} <- Config.parse_config(str) do
-      dbg(config)
-
       Logger.info("Found #{Enum.count(config.crawl_jobs)} crawl job(s)")
 
       for job <- config.crawl_jobs do

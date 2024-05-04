@@ -1,6 +1,7 @@
 {
   "max_request_concurrency": 1,
   "max_request_rate_per_sec": 1,
+  "system_shutdown_timeout_sec": 2,
   "plugins": [["ExportJsonl", { "dir": "tmp" }]],
   "crawl_jobs": [
     {

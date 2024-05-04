@@ -1,8 +1,11 @@
 import Config
 
 config :crawldis_panel, :env, config_env()
-config :crawldis, :env, config_env()
-config :crawldis, config_file: System.get_env("CRAWLDIS_CONFIG_FILE")
+config :crawldis, [
+  env: config_env(),
+  config_file: System.get_env("CRAWLDIS_CONFIG_FILE")
+]
+|> Enum.filter(fn {k, v} -> v != nil end)
 
 if Application.get_application(:crawldis_panel) do
   database_url =

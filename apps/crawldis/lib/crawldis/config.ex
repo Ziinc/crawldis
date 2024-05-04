@@ -6,6 +6,7 @@ defmodule Crawldis.Config do
   use Params.Schema, %{
     max_request_concurrency: [field: :integer, default: 5],
     max_request_rate_per_sec: [field: :integer, default: 10],
+    system_shutdown_timeout_sec: [field: :integer],
     shutdown_timeout_sec: [field: :integer, default: 5],
     plugins: [Crawldis.EctoPlugin],
     crawl_jobs: [
