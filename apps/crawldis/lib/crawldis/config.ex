@@ -43,12 +43,13 @@ defmodule Crawldis.Config do
   def parse_config(str) when is_binary(str) do
     with {:ok, map} <- Jason.decode(str) do
       changeset = from(map)
-      config = Params.to_map(changeset)
-      |> Enum.into(%{
-        plugins: [],
-      })
 
-      |> dbg()
+      config =
+        Params.to_map(changeset)
+        |> Enum.into(%{
+          plugins: []
+        })
+
       {:ok, struct(__MODULE__, config)}
     end
   end
@@ -68,6 +69,6 @@ defmodule Crawldis.Config do
   end
 
   def get_config(key, %CrawlJob{} = job) do
-    Map.get(job, key ) || get_config(key)
+    Map.get(job, key) || get_config(key)
   end
 end

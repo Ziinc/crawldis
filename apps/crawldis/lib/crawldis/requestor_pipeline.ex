@@ -17,6 +17,7 @@ defmodule Crawldis.RequestorPipeline do
 
   def start_link(crawl_job) do
     Logger.debug("Starting RequestorPipeline for job #{crawl_job.id}")
+
     Broadway.start_link(__MODULE__,
       name: Manager.via(__MODULE__, crawl_job.id),
       producer: [
@@ -65,7 +66,7 @@ defmodule Crawldis.RequestorPipeline do
       %{request | response: resp}
     else
       {:ok, %Tesla.Env{status: status} = resp} when status >= 400 ->
-        Logger.warning("Bad request")
+        Logger.warning("Bad request, #{status} for #{inspect(resp)}")
         %{request | response: resp}
     end
   end

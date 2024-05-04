@@ -118,7 +118,6 @@ defmodule Crawldis.ManagerTest do
 
       HttpFetcher
       |> expect(:fetch, 1, fn req ->
-        dbg(req)
         {:ok, %Tesla.Env{status: 200, body: "some body"}}
       end)
 

@@ -47,7 +47,6 @@ defmodule Crawldis.Manager do
           Enum.into(job, %{id: UUID.uuid4()})
           |> then(&struct(CrawlJob, &1))
       end
-      |> dbg()
 
     case DynamicSupervisor.start_child(JobDynSup, {JobSup, job}) do
       {:ok, _pid} -> {:ok, job}

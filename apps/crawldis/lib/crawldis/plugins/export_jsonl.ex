@@ -18,7 +18,7 @@ defmodule Crawldis.Plugins.ExportJsonl do
 
     for {file, value} <- data do
       path = Path.join(dir, file <> ".jsonl")
-      File.write(path, Jason.encode!(value), [:append])
+      File.write(path, Jason.encode!(value) <> "\n", [:append])
     end
   end
 end

@@ -5,7 +5,8 @@ defmodule Crawldis.JobSup do
   alias Crawldis.ExportPipeline
   alias Crawldis.Config
   alias Crawldis.CrawlState
-  use GenServer
+  use GenServer, restart: :transient, shutdown: 5_000
+  require Logger
 
   def start_link(crawl_job) do
     GenServer.start_link(__MODULE__, crawl_job,
@@ -16,7 +17,11 @@ defmodule Crawldis.JobSup do
   @impl true
   def init(crawl_job) do
     plugins = Config.get_config(:plugins, crawl_job)
-    Logger.debug("Initializing #{Enum.count(plugins)} plugins for job #{crawl_job.id}")
+
+    Logger.debug(
+      "Initializing #{Enum.count(plugins)} plugins for job #{crawl_job.id}"
+    )
+
     for {plugin, opts} <- plugins do
       plugin.init(opts)
     end
@@ -49,11 +54,16 @@ defmodule Crawldis.JobSup do
       crawl_state.last_request_at == nil and
           DateTime.diff(DateTime.utc_now(), crawl_state.started_at) >=
             shutdown_timeout(job) ->
+        Logger.debug(
+          "Stopping job #{job.id}, no requests made and timeout reached"
+        )
+
         {:stop, :normal, job}
 
       crawl_state.last_request_at != nil and
           DateTime.diff(DateTime.utc_now(), crawl_state.last_request_at) >=
             shutdown_timeout(job) ->
+        Logger.debug("Stopping job #{job.id}, timeout reached")
         {:stop, :normal, job}
 
       true ->

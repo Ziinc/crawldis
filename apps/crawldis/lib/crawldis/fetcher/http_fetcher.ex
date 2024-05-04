@@ -1,6 +1,7 @@
 defmodule Crawldis.Fetcher.HttpFetcher do
   @moduledoc false
   use Hardhat
+  plug(Tesla.Middleware.FollowRedirects)
   alias Crawldis.Request
   alias Crawldis.Fetcher
   @behaviour Fetcher

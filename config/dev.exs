@@ -2,7 +2,7 @@ import Config
 
 config :crawldis,
   env: :dev,
-  config_file: "config/crawls/init.json"
+  config_file: "init.json"
 
 # Configure your database
 config :crawldis_panel, CrawldisPanel.Repo,

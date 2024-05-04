@@ -7,9 +7,9 @@
     {
       "start_urls": ["https://www.tzeyiing.com/posts"],
       "extract": {
-        "posts": {
-          "title": "css:nav ul li a",
-          "url": "xpath://*/nav//ul/li/a/@href"
+        "static": {
+          "title": "css:title",
+          "footer": "xpath://*/footer"
         }
       }
     }
