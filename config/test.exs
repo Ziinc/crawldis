@@ -9,7 +9,7 @@ import Config
 # Run `mix help test` for more information.
 
 config :logger, :console,
-  level: :warning
+  level: :error
 
 config :crawldis_panel, CrawldisPanel.Repo,
   username: "postgres",

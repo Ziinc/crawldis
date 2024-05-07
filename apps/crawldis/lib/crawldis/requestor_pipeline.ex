@@ -51,7 +51,6 @@ defmodule Crawldis.RequestorPipeline do
     |> Message.update_data(&do_request(&1, context))
     |> Message.update_data(&follow_links(&1, context))
     # |> Message.update_data(&extract_artifacts/1)
-    # |> Message.update_data(&extract_links/1)
     |> Message.update_data(&extract_data(&1, context))
   end
 
@@ -69,8 +68,14 @@ defmodule Crawldis.RequestorPipeline do
       {:ok, %Tesla.Env{status: status} = resp} when status >= 400 ->
         Logger.warning("Bad request, #{status} for #{inspect(resp)}")
         %{request | response: resp}
+
+      {:error, _} = err ->
+        Logger.warning("Error when making request, #{inspect(err)}")
+        request
     end
   end
+
+  def extract_data(%Request{response: nil} = request, _crawl_job), do: request
 
   def extract_data(%Request{response: response} = request, crawl_job) do
     body = response.body
@@ -264,10 +269,19 @@ defmodule Crawldis.RequestorPipeline do
     follow_links_messages =
       for msg <- successful,
           link <- msg.data.follow_links,
-          do: %Broadway.Message{
-            data: link,
-            acknowledger: {__MODULE__, ref, nil}
-          }
+          not visited?(ref, link) do
+        case register_url(ref, link) do
+          {:ok, _} ->
+            %Broadway.Message{
+              data: link,
+              acknowledger: {__MODULE__, ref, nil}
+            }
+
+          {:error, _} ->
+            nil
+        end
+      end
+      |> Enum.filter(& &1)
 
     export_pipeline_via = Manager.via(ExportPipeline, ref)
     requestor_pipeline_via = Manager.via(__MODULE__, ref)
@@ -283,10 +297,22 @@ defmodule Crawldis.RequestorPipeline do
         Broadway.push_messages(export_pipeline_via, export_messages)
     end
 
-    if Enum.count(follow_links_messages) > 0 do
+    if Enum.count(follow_links_messages) > 0 and
+         GenServer.whereis(requestor_pipeline_via) do
       Broadway.push_messages(requestor_pipeline_via, follow_links_messages)
     end
 
     :ok
+  end
+
+  defp visited?(job_id, url) do
+    case Registry.lookup(Crawldis.UrlRegistry, {job_id, url}) do
+      [_ | _] -> true
+      _ -> false
+    end
+  end
+
+  defp register_url(job_id, url) do
+    Registry.register(Crawldis.UrlRegistry, {job_id, url}, DateTime.utc_now())
   end
 end

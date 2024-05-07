@@ -22,6 +22,10 @@ defmodule Crawldis.Application do
           [
             Crawldis.Fetcher.HttpFetcher,
             {Registry, keys: :unique, name: Crawldis.CounterRegistry},
+            {Registry,
+             keys: :unique,
+             name: Crawldis.UrlRegistry,
+             partitions: System.schedulers_online()},
             {Registry, [name: Crawldis.ManagerRegistry, keys: :unique]}
           ] ++ common
 
@@ -31,6 +35,10 @@ defmodule Crawldis.Application do
             Crawldis.AutoShutdownMonitor,
             Crawldis.Fetcher.HttpFetcher,
             {Registry, [name: Crawldis.ManagerRegistry, keys: :unique]},
+            {Registry,
+             keys: :unique,
+             name: Crawldis.UrlRegistry,
+             partitions: System.schedulers_online()},
             {Registry, keys: :unique, name: Crawldis.CounterRegistry}
           ] ++
             common ++

@@ -10,11 +10,6 @@ defmodule Crawldis.ManagerTest do
   setup do
     start_supervised!(Crawldis.Manager)
 
-    HttpFetcher
-    |> stub(:fetch, fn _req ->
-      {:ok, %Tesla.Env{status: 200, body: "some body"}}
-    end)
-
     on_exit(fn ->
       for {_id, child, _type, _mod} <-
             DynamicSupervisor.which_children(JobDynSup) do
@@ -25,15 +20,52 @@ defmodule Crawldis.ManagerTest do
     :ok
   end
 
-  test "start/stop a job" do
-    assert {:ok, %CrawlJob{id: id, start_urls: [_]}} =
-             Manager.start_job(start_urls: ["http://www.some url.com"])
+  defp stub_fetcher(_ctx) do
+    HttpFetcher
+    |> stub(:fetch, fn _req ->
+      {:ok, %Tesla.Env{status: 200, body: "some body"}}
+    end)
 
-    :timer.sleep(500)
+    :ok
+  end
 
-    assert [%CrawlJob{}] = Manager.list_jobs()
-    assert :ok = Manager.stop_job(id)
-    assert [] == Manager.list_jobs()
+  describe "management" do
+    setup [:stub_fetcher]
+
+    test "start/stop a job" do
+      assert {:ok, %CrawlJob{id: id, start_urls: [_]}} =
+               Manager.start_job(start_urls: ["http://localhost:4321"])
+
+      :timer.sleep(500)
+
+      assert [%CrawlJob{}] = Manager.list_jobs()
+      assert :ok = Manager.stop_job(id)
+      assert [] == Manager.list_jobs()
+    end
+
+    test "shutdown_timeout_sec" do
+      assert {:ok, _} =
+               Manager.start_job(
+                 start_urls: [
+                   "http://localhost:4321"
+                 ],
+                 shutdown_timeout_sec: 0.2
+               )
+
+      :timer.sleep(1000)
+      assert [] == Manager.list_jobs()
+    end
+
+    test "shutdown_timeout_sec with no requests" do
+      assert {:ok, _} =
+               Manager.start_job(
+                 start_urls: [],
+                 shutdown_timeout_sec: 0.1
+               )
+
+      :timer.sleep(1000)
+      assert [] == Manager.list_jobs()
+    end
   end
 
   test "rate_limiting" do
@@ -45,39 +77,15 @@ defmodule Crawldis.ManagerTest do
     assert {:ok, _} =
              Manager.start_job(
                start_urls: [
-                 "http://www.some url.com",
-                 "http://www.some url2.com",
-                 "http://www.some url3.com",
-                 "http://www.some url4.com"
+                 "http://www.localhost:4555",
+                 "http://www.localhost:4556",
+                 "http://www.localhost:4557",
+                 "http://www.localhost:4558"
                ],
                max_request_rate_per_sec: 1
              )
 
     :timer.sleep(1_000)
-  end
-
-  test "shutdown_timeout_sec" do
-    assert {:ok, _} =
-             Manager.start_job(
-               start_urls: [
-                 "http://www.some url.com"
-               ],
-               shutdown_timeout_sec: 0.2
-             )
-
-    :timer.sleep(1000)
-    assert [] == Manager.list_jobs()
-  end
-
-  test "shutdown_timeout_sec with no requests" do
-    assert {:ok, _} =
-             Manager.start_job(
-               start_urls: [],
-               shutdown_timeout_sec: 0.1
-             )
-
-    :timer.sleep(1000)
-    assert [] == Manager.list_jobs()
   end
 
   test "max_request_concurrency" do
@@ -100,6 +108,8 @@ defmodule Crawldis.ManagerTest do
   end
 
   describe "global configs" do
+    setup [:stub_fetcher]
+
     setup do
       initial = Application.get_env(:crawldis, :init_config)
 
@@ -115,34 +125,42 @@ defmodule Crawldis.ManagerTest do
       }
 
       assert :ok = Config.load_config(config)
+      pid = self()
+      ref1 = make_ref()
+      ref2 = make_ref()
 
       HttpFetcher
       |> expect(:fetch, 1, fn _req ->
+        send(pid, ref1)
         {:ok, %Tesla.Env{status: 200, body: "some body"}}
       end)
 
       ExportJsonl
       |> expect(:export, 1, fn _req, _ ->
+        send(pid, ref2)
         :ok
       end)
 
       assert {:ok, _} =
                Manager.start_job(
                  start_urls: [
-                   "http://www.some url.com",
-                   "http://www.some url2.com",
-                   "http://www.some url3.com",
-                   "http://www.some url4.com",
-                   "http://www.some url5.com"
+                   "http://localhost:4022",
+                   "http://localhost:4023",
+                   "http://localhost:4024",
+                   "http://localhost:4025",
+                   "http://localhost:4026"
                  ]
                )
 
       :timer.sleep(500)
-      verify!()
+      assert_received ^ref1
+      assert_received ^ref2
     end
   end
 
   describe "request pipeline" do
+    setup [:stub_fetcher]
+
     setup do
       on_exit(fn ->
         File.rm_rf!("tmp")
@@ -198,7 +216,7 @@ defmodule Crawldis.ManagerTest do
            status: 200,
            body: """
            <div>
-             <a href="https://www.my-domain.com/some-other-path">testing</a>
+             <a href="http://localhost:4444/some-other-path">testing</a>
            </div>
            """
          }}
@@ -206,7 +224,37 @@ defmodule Crawldis.ManagerTest do
 
       assert {:ok, %CrawlJob{}} =
                Manager.start_job(%CrawlJob{
-                 start_urls: ["https://www.my-domain.com"],
+                 start_urls: ["http://localhost:4444"],
+                 follow_rules: ["css:div a::attr('href')"],
+                 extract: %{},
+                 plugins: []
+               })
+
+      :timer.sleep(1000)
+    end
+
+    test "follow links drop duplicates" do
+      HttpFetcher
+      |> expect(:fetch, 3, fn _req ->
+        {:ok,
+         %Tesla.Env{
+           status: 200,
+           body: """
+           <div>
+             <a href="http://localhost:4444/some-other-path">testing</a>
+             <a href="http://localhost:4444/some-other-path">testing</a>
+             <a href="http://localhost:4444/some-other-path">testing</a>
+             <a href="http://localhost:4444/some-other-path">testing</a>
+             <a href="http://localhost:4444/some-other-path">testing</a>
+             <a href="http://localhost:4444/some-path">testing</a>
+           </div>
+           """
+         }}
+      end)
+
+      assert {:ok, %CrawlJob{}} =
+               Manager.start_job(%CrawlJob{
+                 start_urls: ["http://localhost:4444"],
                  follow_rules: ["css:div a::attr('href')"],
                  extract: %{},
                  plugins: []
@@ -225,7 +273,7 @@ defmodule Crawldis.ManagerTest do
       # start job
       assert {:ok, %CrawlJob{}} =
                Manager.start_job(
-                 start_urls: ["http://www.some url.com"],
+                 start_urls: ["http://localhost:4022"],
                  extract: %{"my_data" => %{"my_value" => "css:#item"}},
                  plugins: [{ExportJsonl, dir: "tmp/data"}]
                )
