@@ -64,7 +64,10 @@ defmodule Crawldis.Config do
   @spec get_config(atom()) :: term() | nil
   @spec get_config(atom(), CrawlJob.t()) :: term() | nil
   def get_config(key) do
-    env = Application.get_env(:crawldis, :init_config) || %__MODULE__{}
+    env =
+      Application.get_env(:crawldis, :init_config) ||
+        %__MODULE__{plugins: [], extract: %{}}
+
     Map.get(env, key)
   end
 

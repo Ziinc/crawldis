@@ -53,7 +53,7 @@ defmodule Crawldis.ManagerTest do
                max_request_rate_per_sec: 1
              )
 
-    :timer.sleep(500)
+    :timer.sleep(1_000)
   end
 
   test "shutdown_timeout_sec" do
@@ -62,7 +62,7 @@ defmodule Crawldis.ManagerTest do
                start_urls: [
                  "http://www.some url.com"
                ],
-               shutdown_timeout_sec: 0.1
+               shutdown_timeout_sec: 0.2
              )
 
     :timer.sleep(1000)
@@ -117,7 +117,7 @@ defmodule Crawldis.ManagerTest do
       assert :ok = Config.load_config(config)
 
       HttpFetcher
-      |> expect(:fetch, 1, fn req ->
+      |> expect(:fetch, 1, fn _req ->
         {:ok, %Tesla.Env{status: 200, body: "some body"}}
       end)
 
@@ -189,6 +189,31 @@ defmodule Crawldis.ManagerTest do
     #   # } = Manager.get_metrics(job.id)
 
     # end
+
+    test "follow links" do
+      HttpFetcher
+      |> expect(:fetch, 2, fn _req ->
+        {:ok,
+         %Tesla.Env{
+           status: 200,
+           body: """
+           <div>
+             <a href="https://www.my-domain.com/some-other-path">testing</a>
+           </div>
+           """
+         }}
+      end)
+
+      assert {:ok, %CrawlJob{}} =
+               Manager.start_job(%CrawlJob{
+                 start_urls: ["https://www.my-domain.com"],
+                 follow_rules: ["css:div a::attr('href')"],
+                 extract: %{},
+                 plugins: []
+               })
+
+      :timer.sleep(1000)
+    end
 
     test "exported" do
       HttpFetcher

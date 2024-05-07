@@ -49,6 +49,7 @@ defmodule Crawldis.RequestorPipeline do
     message
     |> Message.update_data(&url_to_request/1)
     |> Message.update_data(&do_request(&1, context))
+    |> Message.update_data(&follow_links(&1, context))
     # |> Message.update_data(&extract_artifacts/1)
     # |> Message.update_data(&extract_links/1)
     |> Message.update_data(&extract_data(&1, context))
@@ -79,16 +80,17 @@ defmodule Crawldis.RequestorPipeline do
           into: %{} do
         reduced =
           for {k, v} <- extract_map, into: %{} do
-            do_extraction(body, {k, v}, %{
-              in_chain: nil,
-              type: nil
-            })
+            do_extraction(body, {k, v})
           end
 
         {dtype, reduced}
       end
 
     %{request | extracted_data: extracted}
+  end
+
+  defp do_extraction(doc, kv_rules) when is_tuple(kv_rules) do
+    do_extraction(doc, kv_rules, %{in_chain: nil, type: nil})
   end
 
   defp do_extraction(doc, {key, %{} = nested}, state) do
@@ -214,27 +216,44 @@ defmodule Crawldis.RequestorPipeline do
   #   %{request | artifacts: [request.body]}
   # end
 
-  # defp extract_links(%Request{follow_link_extractors: nil} = request) do
-  #   %{request | follow_links: []}
-  # end
-  # defp extract_links(%Request{artifacts: artifacts, follow_link_extractors: extractors} = request) do
-  # for rule <- extractors, artifact <- artifacts do
-  #   case rule do
-  #     {:xpath, rule} -> Meeseeks.all(document, xpath("//*[@id='main']//p")
-  #   end
+  def follow_links(request, %{follow_rules: nil}) do
+    request
+  end
 
-  #   result = Meeseeks.one(document, xpath("//*[@id='main']//p"))
+  def follow_links(
+        %Request{response: resp} = request,
+        %{follow_rules: rules}
+      ) do
+    {_key, results} = do_extraction(resp.body, {"follow", rules})
 
-  #   {:ok, doc} = Floki.parse_document(html)
-  #   doc
-  #   |> Floki.find(rule)
-  #   |> Floki.text()
-  # end
-  #   %{request | follow_links: []}
-  # end
+    # convert relative path to full url
+    # use the request path as the base
+    prev_uri = URI.parse(request.url)
+
+    results =
+      results
+      |> Enum.map(fn url ->
+        uri = URI.parse(url)
+
+        if uri.host == nil do
+          %{uri | host: prev_uri.host, scheme: prev_uri.scheme}
+        else
+          uri
+        end
+      end)
+      |> Enum.filter(fn uri ->
+        String.starts_with?(no_www(uri.host), no_www(prev_uri.host))
+      end)
+      |> Enum.map(&URI.to_string/1)
+
+    %{request | follow_links: results}
+  end
+
+  defp no_www("www." <> root), do: root
+  defp no_www(host), do: host
 
   def ack(ref, successful, _failed) do
-    to_push =
+    export_messages =
       for msg <- successful,
           msg.data.extracted_data,
           do: %Broadway.Message{
@@ -242,9 +261,18 @@ defmodule Crawldis.RequestorPipeline do
             acknowledger: {ExportPipeline, ref, nil}
           }
 
-    via = Manager.via(ExportPipeline, ref)
+    follow_links_messages =
+      for msg <- successful,
+          link <- msg.data.follow_links,
+          do: %Broadway.Message{
+            data: link,
+            acknowledger: {__MODULE__, ref, nil}
+          }
 
-    case GenServer.whereis(via) do
+    export_pipeline_via = Manager.via(ExportPipeline, ref)
+    requestor_pipeline_via = Manager.via(__MODULE__, ref)
+
+    case GenServer.whereis(export_pipeline_via) do
       nil ->
         Logger.warning(
           "Unable to push artifacts to ExportPipeline as process is not alive. crawl_job_id: #{ref}",
@@ -252,7 +280,11 @@ defmodule Crawldis.RequestorPipeline do
         )
 
       _pid ->
-        Broadway.push_messages(via, to_push)
+        Broadway.push_messages(export_pipeline_via, export_messages)
+    end
+
+    if Enum.count(follow_links_messages) > 0 do
+      Broadway.push_messages(requestor_pipeline_via, follow_links_messages)
     end
 
     :ok

@@ -1,10 +1,7 @@
 defmodule Crawldis.AutoShutdownMonitor do
   @moduledoc false
   alias Crawldis.Manager
-  alias Crawldis.RequestorPipeline
-  alias Crawldis.ExportPipeline
   alias Crawldis.Config
-  alias Crawldis.CrawlState
   use GenServer
 
   require Logger
@@ -54,7 +51,8 @@ defmodule Crawldis.AutoShutdownMonitor do
     end
   end
 
-  def terminate(reason, state) do
+  @impl GenServer
+  def terminate(reason, _state) do
     if reason == :normal do
       Logger.info("Shutting down crawldis")
       System.stop()

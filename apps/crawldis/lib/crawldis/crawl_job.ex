@@ -10,6 +10,7 @@ defmodule Crawldis.CrawlJob do
     field(:max_request_concurrency, non_neg_integer())
     field(:max_request_rate_per_sec, non_neg_integer())
     field(:shutdown_timeout_sec, non_neg_integer())
+    field(:follow_rules, [String.t()])
     field(:start_urls, [String.t()])
     field(:metrics, __MODULE__.Metrics.t())
     field(:extract, %{String.t() => map()}, default: nil)

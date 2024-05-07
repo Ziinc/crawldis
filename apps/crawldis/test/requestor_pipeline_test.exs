@@ -181,4 +181,72 @@ defmodule Crawldis.RequestorPipelineTest do
     |> RequestorPipeline.extract_data(%CrawlJob{extract: rules})
     |> Map.get(:extracted_data)
   end
+
+  describe "follow_links" do
+    test "follow fully qualified url" do
+      body = """
+        <a href="https://www.my-domain.com/some-other-path">testing</a>
+      """
+
+      assert [_] = do_follow_links(body, ["css: a::attr('href')"])
+    end
+
+    test "follow root domain" do
+      body = """
+        <a href="https://my-domain.com/some-other-path">testing</a>
+      """
+
+      assert [_] =
+               do_follow_links(
+                 body,
+                 ["css: a::attr('href')"],
+                 "https://www.my-domain.com"
+               )
+    end
+
+    test "follow www domain" do
+      body = """
+        <a href="https://www.my-domain.com/some-other-path">testing</a>
+      """
+
+      assert [_] =
+               do_follow_links(
+                 body,
+                 ["css: a::attr('href')"],
+                 "https://my-domain.com"
+               )
+    end
+
+    test "does not follow other domain" do
+      body = """
+        <a href="https://www.other-my-domain.com/some-other-path">testing</a>
+      """
+
+      assert [] =
+               do_follow_links(
+                 body,
+                 ["css: a::attr('href')"],
+                 "https://my-domain.com"
+               )
+    end
+
+    test "handles relative paths" do
+      body = """
+        <a href="/some-other-path?some=query">testing</a>
+      """
+
+      assert ["https://www.my-domain.com/some-other-path?some=query"] =
+               do_follow_links(
+                 body,
+                 ["css: a::attr('href')"],
+                 "https://www.my-domain.com"
+               )
+    end
+  end
+
+  defp do_follow_links(body, rules, url \\ "https://www.my-domain/some-website") do
+    %Request{url: url, response: %{body: body}}
+    |> RequestorPipeline.follow_links(%CrawlJob{follow_rules: rules})
+    |> Map.get(:follow_links)
+  end
 end

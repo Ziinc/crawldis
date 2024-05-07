@@ -14,7 +14,7 @@ defmodule Crawldis.Request do
             extracted_data: nil,
             # applied on each artifact
             follow_link_extractors: [],
-            follow_links: nil,
+            follow_links: [],
             response: nil
 
   @type header() :: {String.t(), String.t()}
