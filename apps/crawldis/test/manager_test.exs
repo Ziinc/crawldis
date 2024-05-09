@@ -15,6 +15,8 @@ defmodule Crawldis.ManagerTest do
             DynamicSupervisor.which_children(JobDynSup) do
         DynamicSupervisor.terminate_child(JobDynSup, child)
       end
+
+      :timer.sleep(500)
     end)
 
     :ok
@@ -40,6 +42,7 @@ defmodule Crawldis.ManagerTest do
 
       assert [%CrawlJob{}] = Manager.list_jobs()
       assert :ok = Manager.stop_job(id)
+      :timer.sleep(500)
       assert [] == Manager.list_jobs()
     end
 
@@ -52,7 +55,7 @@ defmodule Crawldis.ManagerTest do
                  shutdown_timeout_sec: 0.2
                )
 
-      :timer.sleep(1000)
+      :timer.sleep(1_500)
       assert [] == Manager.list_jobs()
     end
 
@@ -63,7 +66,7 @@ defmodule Crawldis.ManagerTest do
                  shutdown_timeout_sec: 0.1
                )
 
-      :timer.sleep(1000)
+      :timer.sleep(1_500)
       assert [] == Manager.list_jobs()
     end
   end
@@ -230,7 +233,7 @@ defmodule Crawldis.ManagerTest do
                  plugins: []
                })
 
-      :timer.sleep(1000)
+      :timer.sleep(2_000)
     end
 
     test "follow links drop duplicates" do

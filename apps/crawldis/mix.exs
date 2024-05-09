@@ -47,7 +47,8 @@ defmodule Crawldis.MixProject do
       {:meeseeks, "~> 0.17.0"},
       {:jason, "~> 1.4"},
       {:params, "~> 2.0"},
-      {:ecto_sql, "~> 3.11"}
+      {:ecto_sql, "~> 3.11"},
+      {:flame, "~> 0.1.12"}
     ]
   end
 

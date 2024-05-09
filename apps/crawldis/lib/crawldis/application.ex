@@ -13,7 +13,14 @@ defmodule Crawldis.Application do
     env = Application.get_env(:crawldis, :env)
 
     common = [
-      {DynamicSupervisor, strategy: :one_for_one, name: Crawldis.JobDynSup}
+      {DynamicSupervisor, strategy: :one_for_one, name: Crawldis.JobDynSup},
+      {Registry, keys: :unique, name: Crawldis.JobRegistry},
+      {FLAME.Pool,
+       name: Crawldis.JobRunnerPool,
+       min: 0,
+       max: 10,
+       max_concurrency: 100,
+       idle_shutdown_after: 30_000}
     ]
 
     children =

@@ -6,7 +6,7 @@ defmodule Crawldis.Manager do
   """
   alias Crawldis.JobDynSup
   alias Crawldis.Manager
-  alias Crawldis.JobSup
+  alias Crawldis.JobFlame
   alias Crawldis.CrawlJob
   use Supervisor
 
@@ -48,21 +48,31 @@ defmodule Crawldis.Manager do
           |> then(&struct(CrawlJob, &1))
       end
 
-    case DynamicSupervisor.start_child(JobDynSup, {JobSup, job}) do
+    case DynamicSupervisor.start_child(JobDynSup, %{
+           id: job.id,
+           start: {JobFlame, :start_link, [job]}
+         }) do
       {:ok, _pid} -> {:ok, job}
     end
   end
 
   @spec list_jobs :: [Manager.CrawlJob.t()]
   def list_jobs do
-    for {_id, child, _type, _mod} <- DynamicSupervisor.which_children(JobDynSup) do
-      JobSup.get_job(child)
+    for {_key, _pid, value} <-
+          Registry.select(Crawldis.JobRegistry, [
+            {{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}
+          ]) do
+      value
     end
   end
 
-  @spec get_job(binary()) :: Manager.CrawlJob.t()
-  def get_job(id) when is_binary(id),
-    do: GenServer.call(Manager.Worker, {:get_job, id})
+  @spec get_job(String.t()) :: CrawlJob.t() | nil
+  def get_job(id) do
+    case Registry.lookup(Crawldis.JobRegistry, id) do
+      [{_pid, job}] -> job
+      _ -> nil
+    end
+  end
 
   # @spec get_metrics(binary()) :: Manager.CrawlJob.Metrics.t()
   # def get_metrics(id) when is_binary(id),
@@ -70,11 +80,12 @@ defmodule Crawldis.Manager do
 
   @spec stop_job(binary() | :all) :: :ok
   def stop_job(id) do
-    for {_id, child, _type, _mod} <-
-          DynamicSupervisor.which_children(JobDynSup),
-        crawl_job = JobSup.get_job(child),
-        crawl_job.id == id or id == :all do
-      DynamicSupervisor.terminate_child(JobDynSup, child)
+    case Registry.lookup(Crawldis.JobRegistry, id) do
+      [{pid, _job}] ->
+        DynamicSupervisor.terminate_child(JobDynSup, pid)
+
+      _ ->
+        :ok
     end
 
     :ok

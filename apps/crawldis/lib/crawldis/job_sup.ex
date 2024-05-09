@@ -33,56 +33,6 @@ defmodule Crawldis.JobSup do
     ]
 
     {:ok, _pid} = Supervisor.start_link(children, strategy: :one_for_one)
-    loop(crawl_job)
     {:ok, crawl_job}
-  end
-
-  def get_job(pid) do
-    GenServer.call(pid, :get_job)
-  end
-
-  @impl true
-  def handle_call(:get_job, _caller, state) do
-    {:reply, state, state}
-  end
-
-  @impl true
-  def handle_info(:maybe_shutdown, job) do
-    crawl_state = CrawlState.get_state(job.id)
-
-    cond do
-      crawl_state.last_request_at == nil and
-          DateTime.diff(DateTime.utc_now(), crawl_state.started_at) >=
-            shutdown_timeout(job) ->
-        Logger.debug(
-          "Stopping job #{job.id}, no requests made and timeout reached"
-        )
-
-        {:stop, :normal, job}
-
-      crawl_state.last_request_at != nil and
-          DateTime.diff(DateTime.utc_now(), crawl_state.last_request_at) >=
-            shutdown_timeout(job) ->
-        Logger.debug("Stopping job #{job.id}, timeout reached")
-        {:stop, :normal, job}
-
-      true ->
-        loop(job)
-        {:noreply, job}
-    end
-  end
-
-  defp loop(job) do
-    factor = if(shutdown_timeout(job) > 0, do: 400, else: 200)
-
-    Process.send_after(
-      self(),
-      :maybe_shutdown,
-      round(factor * shutdown_timeout(job))
-    )
-  end
-
-  defp shutdown_timeout(job) do
-    Config.get_config(:shutdown_timeout_sec, job)
   end
 end
