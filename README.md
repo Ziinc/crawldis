@@ -4,7 +4,7 @@
 
 Delarative crawler. Deploy and remote control spiders. Fully self-hostable.
 
-### Features
+## Features
 
 1. Selectors
    - CSS, XPath, Regex
@@ -15,7 +15,7 @@ Delarative crawler. Deploy and remote control spiders. Fully self-hostable.
    - Flatfile: JSONL
 4. Docker image for deployments
 
-### Usage
+## Quickstart
 
 1. Add config file, `init.json`
 
@@ -38,7 +38,7 @@ Delarative crawler. Deploy and remote control spiders. Fully self-hostable.
 }
 ```
 
-#### Option 1: using docker compose
+### Option 1: using docker compose
 
 2. Create a docker-compose file
 
@@ -56,7 +56,7 @@ services:
 
 3. Run the crawler with `docker-compose up`. The crawler will automatically shut down after idling.
 
-#### Option 2: using docker run
+### Option 2: using docker run
 
 ```
 docker run -it --rm \
