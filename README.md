@@ -7,15 +7,13 @@ Delarative crawler. Deploy and remote control spiders. Fully self-hostable.
 ### Features
 
 1. Selectors
-   - CSS selectors
-   - XPath selectors
-2. Rate limiting
-3. 3rd Party Scraping Services Integration
-4. JSON schema validation for scraped data
-5. HTTP/gRPC API for remote control
-6. Multiple output destinations:
-   - Flatfile: CSV, TSV, JSONL
-   - Webhooks
+   - CSS, XPath, Regex
+   - Chaining of selectors
+   - Attribute selection
+2. Rate limiting and concurrency
+3. Multiple output destinations:
+   - Flatfile: JSONL
+4. Docker image for deployments
 
 ### Usage
 
@@ -39,7 +37,9 @@ Delarative crawler. Deploy and remote control spiders. Fully self-hostable.
   ]
 }
 ```
+
 #### Option 1: using docker compose
+
 2. Create a docker-compose file
 
 ```bash
@@ -53,6 +53,7 @@ services:
       - ./init.json:/app/bin/init.json
       - ./tmp/export:/app/bin/export
 ```
+
 3. Run the crawler with `docker-compose up`. The crawler will automatically shut down after idling.
 
 #### Option 2: using docker run
@@ -65,6 +66,7 @@ docker run -it --rm \
   -e CRAWLDIS_CONFIG_FILE=init.json \
   ziinc/crawldis:latest
 ```
+
 ## Documentation
 
 ### Crawl Jobs
@@ -96,6 +98,7 @@ Attribute extraction is supported for both CSS and XPath:
 - `xpath: //ul/nav/@href`
 
 ### Configuration
+
 Configuration can be at either the global level or the job level. Job level will take precedence over the global level and will override any provided setting.
 
 #### Environment Variables
