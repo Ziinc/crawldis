@@ -48,7 +48,8 @@ defmodule Crawldis.MixProject do
       {:jason, "~> 1.4"},
       {:params, "~> 2.0"},
       {:ecto_sql, "~> 3.11"},
-      {:flame, "~> 0.1.12"}
+      {:flame, "~> 0.1.12"},
+      {:ex2ms, "~> 1.0"}
     ]
   end
 

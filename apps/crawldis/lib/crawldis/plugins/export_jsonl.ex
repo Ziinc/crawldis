@@ -13,7 +13,7 @@ defmodule Crawldis.Plugins.ExportJsonl do
   end
 
   @impl Crawldis.Plugin
-  def export(data, opts) do
+  def export(data, _crawljob, opts) do
     dir = Path.expand(opts[:dir])
 
     for {file, value} <- data do

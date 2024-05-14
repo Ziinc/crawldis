@@ -9,6 +9,8 @@ defmodule Crawldis.ExportPipeline do
 
   def start_link(crawl_job) do
     # run broadway pipeline
+    init_plugins(crawl_job)
+
     Broadway.start_link(__MODULE__,
       name: Manager.via(__MODULE__, crawl_job.id),
       producer: [
@@ -22,6 +24,18 @@ defmodule Crawldis.ExportPipeline do
     )
   end
 
+  def init_plugins(crawl_job) do
+    for {plugin, opts} <- Config.get_config(:plugins, crawl_job) do
+      plugin.init(opts)
+    end
+  end
+
+  def cleanup(crawl_job) do
+    for {plugin, opts} <- Config.get_config(:plugins, crawl_job) do
+      plugin.cleanup(crawl_job, opts)
+    end
+  end
+
   @impl Broadway
   def process_name({:via, module, {reg, {mod, id}}}, base_name) do
     {:via, module, {reg, {mod, id, base_name}}}
@@ -30,16 +44,16 @@ defmodule Crawldis.ExportPipeline do
   @impl Broadway
   def handle_message(_processor_name, message, crawl_job) do
     message
-    |> Message.update_data(&do_export(&1, crawl_job))
+    |> Message.update_data(&handle_export(&1, crawl_job))
   end
 
-  defp do_export(data, crawl_job) do
+  def handle_export(data, crawl_job) do
     for {plugin, opts} <- Config.get_config(:plugins, crawl_job),
-        Keyword.has_key?(plugin.__info__(:functions), :export) do
-      plugin.export(data, opts)
+        Keyword.has_key?(plugin.__info__(:functions), :export),
+        reduce: {:ok, data} do
+      {:ok, data} -> plugin.export(data, crawl_job, opts)
+      {:drop, _} = d -> d
     end
-
-    data
   end
 
   def ack(_ref, _successful, _failed) do
