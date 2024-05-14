@@ -101,6 +101,18 @@ Attribute extraction is supported for both CSS and XPath:
 
 Configuration can be at either the global level or the job level. Job level will take precedence over the global level and will override any provided setting.
 
+#### Export Plugins
+
+Export plugins will run during the export phase.
+
+`ExportDuplicates`
+
+- `strategy` (`drop` by default): What to do when a duplicate is detected.
+
+`ExportJsonl`
+
+- `dir` (string, required): Directory to output the jsonl files.
+
 #### Environment Variables
 
 - `CRAWLDIS_CONFIG_FILE`: (string) path to configuration json file.
