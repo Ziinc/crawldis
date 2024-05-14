@@ -39,7 +39,7 @@ defmodule Crawldis.Config do
   @doc """
   Parases a config map from a given string
   """
-  @spec parse_config(String.t()) :: {:ok, Crawldis.Config.t()}
+  @spec parse_config(String.t()) :: {:ok, %Crawldis.Config{}}
   def parse_config(str) when is_binary(str) do
     with {:ok, map} <- Jason.decode(str) do
       changeset = from(map)
