@@ -18,12 +18,11 @@ jobs:
       - uses: docker/build-push-action@v3
         with:
           push: false
-          platforms: linux/amd64
           tags: ziinc/crawldis:local
           # caching
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: Run Pytest
+      - name: Run export
         uses: addnab/docker-run-action@v3
         with:
           image: ziinc/crawldis:local
