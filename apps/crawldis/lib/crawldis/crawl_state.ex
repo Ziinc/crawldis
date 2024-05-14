@@ -1,4 +1,5 @@
 defmodule Crawldis.CrawlState do
+  @moduledoc false
   use Agent
 
   alias Crawldis.Manager

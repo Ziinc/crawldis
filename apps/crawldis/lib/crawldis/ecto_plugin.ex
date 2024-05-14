@@ -1,4 +1,5 @@
 defmodule Crawldis.EctoPlugin do
+  @moduledoc false
   use Ecto.Type
   def type, do: :plugin
 

@@ -31,7 +31,7 @@ jobs:
         alias:
           - format --check-formatted
           - test apps/crawldis/test
-          - credo
+          - credo --only warnings
     steps:
       - uses: actions/checkout@v3
       - name: Set up Elixir

@@ -40,7 +40,7 @@ config :phoenix, :json_library, Jason
 
 config :logger, :console,
   format: "[$level] $message $metadata\n",
-  metadata: [:data]
+  metadata: [:data, :crawl_job_id]
 
 
 import_config "#{Mix.env()}.exs"
