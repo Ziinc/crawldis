@@ -4,10 +4,10 @@ defmodule Crawldis.Plugins.ExportDuplicates do
   import Ex2ms
   @behaviour Crawldis.Plugin
 
-  @impl Crawldis.Plugin
 
   @table_name :export_hashtable
 
+  @impl Crawldis.Plugin
   def init(_opts) do
     if :ets.whereis(@table_name) == :undefined do
       :ets.new(@table_name, [:set, :public, :named_table])
@@ -16,6 +16,7 @@ defmodule Crawldis.Plugins.ExportDuplicates do
     %{}
   end
 
+  @impl Crawldis.Plugin
   def cleanup(%CrawlJob{id: id}, _opts \\ []) do
     if :ets.whereis(@table_name) != :undefined do
       ms =
