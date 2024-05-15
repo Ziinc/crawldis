@@ -35,4 +35,4 @@ jobs:
             -v ${{ github.workspace }}/export:/app/bin/export 
             -e CRAWLDIS_CONFIG_FILE=init.json
       - name: Export to JSONL check
-        run: grep -Fxq "How to Generate Dynamic Pages for Docusaurus" export/posts.jsonl
+        run: grep -Fxq "How to Generate Dynamic Pages for Docusaurus" tmp/posts.jsonl
