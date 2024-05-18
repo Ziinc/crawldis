@@ -41,7 +41,7 @@ defmodule Crawldis.AutoShutdownMonitor do
         loop(3000)
         {:noreply, %{last_idle: nil}}
 
-      DateTime.diff(DateTime.utc_now(), last_idle) <= shutdown_timeout() ->
+      DateTime.diff(DateTime.utc_now(), last_idle) >= shutdown_timeout() ->
         Logger.debug(
           "System idle timeout reached, no active jobs remaining, shutting down crawldis"
         )
