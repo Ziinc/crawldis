@@ -50,7 +50,8 @@ defmodule Crawldis.Manager do
 
     case DynamicSupervisor.start_child(JobDynSup, %{
            id: job.id,
-           start: {JobFlame, :start_link, [job]}
+           start: {JobFlame, :start_link, [job]},
+           restart: :transient
          }) do
       {:ok, _pid} -> {:ok, job}
     end

@@ -21,7 +21,7 @@ defmodule Crawldis.AutoShutdownMonitor do
     jobs = Manager.list_jobs()
     count = Enum.count(jobs)
 
-    Logger.debug("checking if idle")
+    Logger.debug("checking if idle... #{count} jobs active")
 
     if count > 0 do
       loop(3000)
@@ -42,7 +42,10 @@ defmodule Crawldis.AutoShutdownMonitor do
         {:noreply, %{last_idle: nil}}
 
       DateTime.diff(DateTime.utc_now(), last_idle) <= shutdown_timeout() ->
-        Logger.debug("System idle timeout reached, shutting down crawldis")
+        Logger.debug(
+          "System idle timeout reached, no active jobs remaining, shutting down crawldis"
+        )
+
         {:stop, :normal, state}
 
       true ->

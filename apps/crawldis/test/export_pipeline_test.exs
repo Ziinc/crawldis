@@ -38,6 +38,7 @@ defmodule Crawldis.ExportPipelineTest do
       data = %{some: nil, other: nil}
       assert {:drop, :nulls} = ExportPipeline.handle_export(data, job)
     end
+
     test "nested", %{job: job} do
       data = %{other: nil, some: %{other: nil}}
       assert {:drop, :nulls} = ExportPipeline.handle_export(data, job)

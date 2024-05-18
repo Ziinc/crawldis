@@ -13,7 +13,6 @@ defmodule Crawldis.Plugins.ExportNulls do
     end
   end
 
-
   @doc """
   Recursively checks if all keys are nils
     iex> all_nulls?(%{some: nil})
@@ -28,6 +27,6 @@ defmodule Crawldis.Plugins.ExportNulls do
       {_k, nil} -> true
       {_k, v} when is_list(v) or is_map(v) -> all_nulls?(v)
       _ -> false
-    end )
+    end)
   end
 end

@@ -4,7 +4,6 @@ defmodule Crawldis.Plugins.ExportDuplicates do
   import Ex2ms
   @behaviour Crawldis.Plugin
 
-
   @table_name :export_hashtable
 
   @impl Crawldis.Plugin

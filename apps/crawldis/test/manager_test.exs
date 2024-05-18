@@ -139,7 +139,7 @@ defmodule Crawldis.ManagerTest do
       end)
 
       ExportJsonl
-      |> expect(:export, 1, fn _req, _job,  _ ->
+      |> expect(:export, 1, fn _req, _job, _ ->
         send(pid, ref2)
         :ok
       end)

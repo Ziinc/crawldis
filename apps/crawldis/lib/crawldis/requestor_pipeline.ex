@@ -46,6 +46,10 @@ defmodule Crawldis.RequestorPipeline do
 
   @impl Broadway
   def handle_message(_processor_name, message, context) do
+    Logger.debug(
+      "#{__MODULE__} Handling pipeline message: #{inspect(message.data)}"
+    )
+
     message
     |> Message.update_data(&url_to_request/1)
     |> Message.update_data(&do_request(&1, context))
@@ -294,6 +298,10 @@ defmodule Crawldis.RequestorPipeline do
         )
 
       _pid ->
+        Logger.debug(
+          "#{__MODULE__} Pushing #{inspect(length(export_messages))} messages into export pipeline."
+        )
+
         Broadway.push_messages(export_pipeline_via, export_messages)
     end
 
