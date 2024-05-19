@@ -264,7 +264,7 @@ defmodule Crawldis.ManagerTest do
                  plugins: []
                })
 
-      :timer.sleep(1000)
+      :timer.sleep(1_500)
     end
 
     test "exported" do

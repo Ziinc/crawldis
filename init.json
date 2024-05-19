@@ -6,7 +6,6 @@
   "crawl_jobs": [
     {
       "start_urls": ["https://www.tzeyiing.com/posts"],
-      "cron": "* * * * * *",
       "extract": {
         "static": {
           "title": "css:title",
