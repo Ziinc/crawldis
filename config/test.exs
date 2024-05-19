@@ -26,3 +26,8 @@ config :crawldis_web, CrawldisWeb.Endpoint,
   secret_key_base:
     "xLXG96aORZPhYVkjM5+t9L3ztjZJx5FnqKxXhfYNp8r7JTPImwUw7DBOqsTV7W+B",
   server: true
+
+config :crawldis, Crawldis.Oban, testing: :inline
+
+config :crawldis, Crawldis.Repo,
+  database: "tmp/crawler_test.db"

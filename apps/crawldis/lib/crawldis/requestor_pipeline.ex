@@ -63,6 +63,8 @@ defmodule Crawldis.RequestorPipeline do
   end
 
   defp do_request(%Request{} = request, crawl_job) do
+    Logger.debug("RequestorPipeline handling request for #{request.url}")
+
     with {:ok, %Tesla.Env{status: status} = resp} when status < 400 <-
            HttpFetcher.fetch(request) do
       # Requestor.increment(resp.crawl_job_id, :scraped)

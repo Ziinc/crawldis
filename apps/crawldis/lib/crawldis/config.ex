@@ -54,6 +54,13 @@ defmodule Crawldis.Config do
     end
   end
 
+  def crawl_job_params(params) do
+    from(%{"crawl_jobs" => [params]})
+    |> Params.to_map()
+    |> Map.get(:crawl_jobs)
+    |> hd()
+  end
+
   @doc "Sets config to the :init_config env"
   @spec load_config(%__MODULE__{}) :: :ok
   def load_config(%__MODULE__{} = config) do

@@ -43,5 +43,15 @@ config :logger, :console,
   metadata: [:data, :crawl_job_id]
 
 
+config :crawldis,
+  ecto_repos: [Crawldis.Repo]
+
+config :crawldis, Crawldis.Oban,
+  engine: Oban.Engines.Lite,
+  queues: [default: 10],
+  repo: Crawldis.Repo,
+  notifier: Oban.Notifiers.PG,
+  peer: Oban.Peers.Global
+
 import_config "#{Mix.env()}.exs"
 # import_config "local.secret.exs"

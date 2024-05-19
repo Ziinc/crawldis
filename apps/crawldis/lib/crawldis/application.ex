@@ -12,16 +12,22 @@ defmodule Crawldis.Application do
   def start(_type, _args) do
     env = Application.get_env(:crawldis, :env)
 
-    common = [
-      {DynamicSupervisor, strategy: :one_for_one, name: Crawldis.JobDynSup},
-      {Registry, keys: :unique, name: Crawldis.JobRegistry},
-      {FLAME.Pool,
-       name: Crawldis.JobRunnerPool,
-       min: 0,
-       max: 10,
-       max_concurrency: 100,
-       idle_shutdown_after: 30_000}
-    ]
+    flame_parent = FLAME.Parent.get() |> dbg()
+
+    common =
+      [
+        !flame_parent && Crawldis.Repo,
+        !flame_parent && Crawldis.Oban,
+        {DynamicSupervisor, strategy: :one_for_one, name: Crawldis.JobDynSup},
+        {Registry, keys: :unique, name: Crawldis.JobRegistry},
+        {FLAME.Pool,
+         name: Crawldis.JobRunnerPool,
+         min: 0,
+         max: 10,
+         max_concurrency: 100,
+         idle_shutdown_after: 30_000}
+      ]
+      |> Enum.filter(& &1)
 
     children =
       case env do
@@ -50,7 +56,7 @@ defmodule Crawldis.Application do
           ] ++
             common ++
             [
-              {Task, &startup_task/0}
+              {Task, &startup_tasks/0}
             ]
       end
 
@@ -60,16 +66,23 @@ defmodule Crawldis.Application do
     Supervisor.start_link(children, opts)
   end
 
-  defp startup_task do
+  def startup_tasks do
     # start jobs
     with {:ok, str} <- Config.read_config_file(),
          {:ok, config} <- Config.parse_config(str) do
       Logger.info("Found #{Enum.count(config.crawl_jobs)} crawl job(s)")
       Config.load_config(config)
 
-      for job <- config.crawl_jobs do
-        Manager.start_job(job)
-      end
+      dbg(config)
+
+      changesets =
+        for job <- config.crawl_jobs do
+          Manager.queue_job(job)
+        end
+
+      Crawldis.Oban
+      |> Oban.insert_all(changesets)
+      |> dbg()
     else
       {:error, :enoent} ->
         Logger.warning("No config file found")

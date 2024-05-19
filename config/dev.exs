@@ -4,6 +4,9 @@ config :crawldis,
   env: :dev,
   config_file: "init.json"
 
+config :crawldis, Crawldis.Repo,
+  database: "tmp/crawler.db"
+
 # Configure your database
 config :crawldis_panel, CrawldisPanel.Repo,
   username: "postgres",

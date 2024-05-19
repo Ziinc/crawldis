@@ -6,6 +6,7 @@ defmodule Crawldis.ManagerTest do
   alias Crawldis.JobDynSup
   alias Crawldis.Plugins.ExportJsonl
   alias Crawldis.Config
+  alias Crawldis.Manager
 
   setup do
     start_supervised!(Crawldis.Manager)
@@ -293,5 +294,21 @@ defmodule Crawldis.ManagerTest do
       assert jsonl =~ "my_value"
       refute jsonl =~ "div"
     end
+  end
+
+  test "queue_job/1 enqueues an oban job" do
+    HttpFetcher
+    |> expect(:fetch, 1, fn _req ->
+      {:ok, %Tesla.Env{status: 200, body: "some body"}}
+    end)
+
+    assert :ok =
+             Manager.queue_job(
+               start_urls: [
+                 "http://www.localhost:4555"
+               ]
+             )
+
+    :timer.sleep(1_000)
   end
 end

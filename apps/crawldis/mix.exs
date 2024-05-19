@@ -34,22 +34,21 @@ defmodule Crawldis.MixProject do
   defp deps do
     [
       {:broadway, "~> 1.0"},
-      {:libcluster, "~> 3.3"},
-      {:horde, "~> 0.8"},
-      {:delta_crdt, "~> 0.6.3"},
       {:exsync, "~> 0.2", only: :dev},
       {:uuid, "~> 1.1" },
       {:hardhat, "~> 1.0.0"},
       {:telemetry, "~> 1.0"},
-      {:phoenix_client, "~> 0.3"},
       {:typed_struct, "~> 0.3.0"},
       {:mimic, "~> 1.7", only: :test},
       {:meeseeks, "~> 0.17.0"},
       {:jason, "~> 1.4"},
       {:params, "~> 2.0"},
-      {:ecto_sql, "~> 3.11"},
       {:flame, "~> 0.1.12"},
-      {:ex2ms, "~> 1.0"}
+      {:ex2ms, "~> 1.0"},
+      {:oban, "~> 2.17"},
+      {:ecto_sql, "~> 3.11"},
+      {:ecto_sqlite3, "~> 0.15.1"},
+      {:ecto, "~> 3.11"}
     ]
   end
 

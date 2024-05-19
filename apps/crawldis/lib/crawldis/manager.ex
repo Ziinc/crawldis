@@ -8,6 +8,7 @@ defmodule Crawldis.Manager do
   alias Crawldis.Manager
   alias Crawldis.JobFlame
   alias Crawldis.CrawlJob
+  alias Crawldis.Oban.CrawlWorker
   use Supervisor
 
   def start_link(_) do
@@ -37,16 +38,8 @@ defmodule Crawldis.Manager do
   end
 
   @spec start_job(map() | keyword()) :: {:ok, Manager.CrawlJob.t()}
-  def start_job(job) do
-    job =
-      case job do
-        %CrawlJob{} ->
-          %{job | id: UUID.uuid4()}
-
-        _ ->
-          Enum.into(job, %{id: UUID.uuid4()})
-          |> then(&struct(CrawlJob, &1))
-      end
+  def start_job(params) do
+    job = params_to_job(params)
 
     case DynamicSupervisor.start_child(JobDynSup, %{
            id: job.id,
@@ -98,4 +91,30 @@ defmodule Crawldis.Manager do
   #   |> Requestor.via()
   #   |> Requestor.get_metrics()
   # end
+
+  def queue_job(params), do: queue_jobs([params])
+
+  def queue_jobs(list_of_params) when is_list(list_of_params) do
+    changesets =
+      for params <- list_of_params do
+        job = params_to_job(params)
+        CrawlWorker.new(job)
+      end
+
+    Crawldis.Oban
+    |> Oban.insert_all(changesets)
+
+    :ok
+  end
+
+  defp params_to_job(params) do
+    case params do
+      %CrawlJob{} ->
+        %{params | id: UUID.uuid4()}
+
+      _ ->
+        Enum.into(params, %{id: UUID.uuid4()})
+        |> then(&struct(CrawlJob, &1))
+    end
+  end
 end
