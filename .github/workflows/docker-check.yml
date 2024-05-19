@@ -26,6 +26,7 @@ jobs:
           # caching
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - run: mkdir ./tmp
       - name: Run export
         uses: addnab/docker-run-action@v3
         with:
@@ -34,5 +35,6 @@ jobs:
             -v ${{ github.workspace }}/init.json:/app/bin/init.json
             -v ${{ github.workspace }}/tmp:/app/bin/tmp 
             -e CRAWLDIS_CONFIG_FILE=init.json
+      - run: ls -la
       - name: Export to JSONL check
         run: grep -Fxq "How to Generate Dynamic Pages for Docusaurus" tmp/static.jsonl
