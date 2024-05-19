@@ -18,6 +18,7 @@ defmodule Crawldis.Application do
       [
         !flame_parent && Crawldis.Repo,
         !flame_parent && Crawldis.Oban,
+        !flame_parent && Crawldis.Scheduler,
         {DynamicSupervisor, strategy: :one_for_one, name: Crawldis.JobDynSup},
         {Registry, keys: :unique, name: Crawldis.JobRegistry},
         {FLAME.Pool,
@@ -73,16 +74,13 @@ defmodule Crawldis.Application do
       Logger.info("Found #{Enum.count(config.crawl_jobs)} crawl job(s)")
       Config.load_config(config)
 
-      dbg(config)
-
-      changesets =
-        for job <- config.crawl_jobs do
+      for job <- config.crawl_jobs do
+        if job.cron do
+          Manager.schedule_job(job)
+        else
           Manager.queue_job(job)
         end
-
-      Crawldis.Oban
-      |> Oban.insert_all(changesets)
-      |> dbg()
+      end
     else
       {:error, :enoent} ->
         Logger.warning("No config file found")

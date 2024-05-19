@@ -8,6 +8,7 @@ defmodule Crawldis.Manager do
   alias Crawldis.Manager
   alias Crawldis.JobFlame
   alias Crawldis.CrawlJob
+  alias Crawldis.Scheduler
   alias Crawldis.Oban.CrawlWorker
   use Supervisor
 
@@ -85,13 +86,10 @@ defmodule Crawldis.Manager do
     :ok
   end
 
-  # # callbacks
-  # def handle_call({:get_metrics, id}, _caller, state) do
-  #   id
-  #   |> Requestor.via()
-  #   |> Requestor.get_metrics()
-  # end
-
+  @doc """
+  Queues a crawl job using Oban to be started immediately.
+  """
+  @spec queue_job(CrawlJob.t() | map() | keyword()) :: :ok
   def queue_job(params), do: queue_jobs([params])
 
   def queue_jobs(list_of_params) when is_list(list_of_params) do
@@ -105,6 +103,41 @@ defmodule Crawldis.Manager do
     |> Oban.insert_all(changesets)
 
     :ok
+  end
+
+  @doc """
+  Schedule's a cron job on citrine.
+  """
+  @spec schedule_job(CrawlJob.t() | map() | keyword()) ::
+          :ok | {:error, :no_cron}
+  def schedule_job(params) do
+    job = params_to_job(params)
+
+    if job.cron do
+      Scheduler.put_job(%Citrine.Job{
+        id: job.id,
+        # Run every second
+        schedule: job.cron,
+        task: {__MODULE__, :queue_job, [job]},
+        # Use extended cron syntax
+        extended_syntax: true
+      })
+
+      :ok
+    else
+      {:error, :no_cron}
+    end
+  end
+
+  @doc """
+  List jobs that are scheduled on Citrine.
+  """
+  @spec list_scheduled_jobs() :: [CrawlJob.t()]
+  def list_scheduled_jobs() do
+    for {_pid, %_{task: {_, :queue_job, [job]}}} <-
+          Scheduler.list_jobs() do
+      job
+    end
   end
 
   defp params_to_job(params) do

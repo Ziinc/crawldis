@@ -11,9 +11,10 @@ Delarative crawler. Deploy and remote control spiders. Fully self-hostable.
    - Chaining of selectors
    - Attribute selection
 2. Rate limiting and concurrency
-3. Multiple output destinations:
+3. Scheduling with Cron expressions
+4. Multiple output destinations:
    - Flatfile: JSONL
-4. Docker image for deployments
+5. Docker image for deployments
 
 ## Quickstart
 
@@ -70,6 +71,25 @@ docker run -it --rm \
 ## Documentation
 
 ### Crawl Jobs
+
+#### Scheduling
+
+Jobs can be scheduled using cron expressions. Extended second-ly syntax is supported, such as `*/2 * * * * *`.
+
+```json
+{
+  ...
+  "crawl_jobs": [
+    {
+      "start_urls": [...],
+      "cron": "*/5 * * * *",
+      "extract": {
+        ...
+      }
+    }
+  ]
+}
+```
 
 #### Extraction
 

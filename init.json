@@ -1,11 +1,12 @@
 {
   "max_request_concurrency": 1,
   "max_request_rate_per_sec": 1,
-  "system_shutdown_timeout_sec": 5,
+  "system_shutdown_timeout_sec": 180,
   "plugins": [["ExportJsonl", { "dir": "tmp" }]],
   "crawl_jobs": [
     {
       "start_urls": ["https://www.tzeyiing.com/posts"],
+      "cron": "* * * * * *",
       "extract": {
         "static": {
           "title": "css:title",

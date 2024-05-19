@@ -48,7 +48,8 @@ defmodule Crawldis.MixProject do
       {:oban, "~> 2.17"},
       {:ecto_sql, "~> 3.11"},
       {:ecto_sqlite3, "~> 0.15.1"},
-      {:ecto, "~> 3.11"}
+      {:ecto, "~> 3.11"},
+      {:citrine, "~> 0.1.0"}
     ]
   end
 
