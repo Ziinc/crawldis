@@ -30,4 +30,5 @@ config :crawldis_web, CrawldisWeb.Endpoint,
 config :crawldis, Crawldis.Oban, testing: :inline
 
 config :crawldis, Crawldis.Repo,
-  database: "tmp/crawler_test.db"
+  database: ":memory:",
+  pool_size: 1
