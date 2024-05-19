@@ -1,7 +1,6 @@
 defmodule Crawldis.Oban.CrawlWorker do
   use Oban.Worker, max_attempts: 1
 
-  alias Crawldis.CrawlJob
   alias Crawldis.Manager
   alias Crawldis.Config
   require Logger

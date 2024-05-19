@@ -140,6 +140,18 @@ defmodule Crawldis.Manager do
     end
   end
 
+  @doc """
+  Deletes all scheduled jobs on Citrine
+  """
+  @spec delete_scheduled_jobs() :: :ok
+  def delete_scheduled_jobs do
+    for {_pid, %_{id: job_id}} <- Scheduler.list_jobs() do
+      Scheduler.delete_job(job_id)
+    end
+
+    :ok
+  end
+
   defp params_to_job(params) do
     case params do
       %CrawlJob{} ->

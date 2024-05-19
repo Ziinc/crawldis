@@ -12,7 +12,7 @@ defmodule Crawldis.Application do
   def start(_type, _args) do
     env = Application.get_env(:crawldis, :env)
 
-    flame_parent = FLAME.Parent.get() |> dbg()
+    flame_parent = FLAME.Parent.get()
 
     common =
       [

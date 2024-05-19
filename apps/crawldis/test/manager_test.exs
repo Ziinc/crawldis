@@ -312,21 +312,29 @@ defmodule Crawldis.ManagerTest do
     :timer.sleep(1_000)
   end
 
-  test "schedule_job/1 schedules a job on citrine" do
-    HttpFetcher
-    |> expect(:fetch, 1, fn _req ->
-      {:ok, %Tesla.Env{status: 200, body: "some body"}}
-    end)
+  describe "citrine" do
+    setup do
+      on_exit(fn ->
+        Manager.delete_scheduled_jobs()
+      end)
+    end
 
-    assert :ok =
-             Manager.schedule_job(
-               start_urls: [
-                 "http://www.localhost:4555"
-               ],
-               cron: "* * * * * *"
-             )
+    test "schedule_job/1 schedules a job on citrine" do
+      HttpFetcher
+      |> expect(:fetch, 1, fn _req ->
+        {:ok, %Tesla.Env{status: 200, body: "some body"}}
+      end)
 
-    :timer.sleep(1_500)
-    assert [%CrawlJob{cron: "* * * * * *"}] = Manager.list_scheduled_jobs()
+      assert :ok =
+               Manager.schedule_job(
+                 start_urls: [
+                   "http://www.localhost:4555"
+                 ],
+                 cron: "* * * * * *"
+               )
+
+      :timer.sleep(1_500)
+      assert [%CrawlJob{cron: "* * * * * *"}] = Manager.list_scheduled_jobs()
+    end
   end
 end
