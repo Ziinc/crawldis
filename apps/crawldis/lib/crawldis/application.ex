@@ -17,8 +17,6 @@ defmodule Crawldis.Application do
     common =
       [
         !flame_parent && Crawldis.Repo,
-        !flame_parent && Crawldis.Oban,
-        !flame_parent && Crawldis.Scheduler,
         {DynamicSupervisor, strategy: :one_for_one, name: Crawldis.JobDynSup},
         {Registry, keys: :unique, name: Crawldis.JobRegistry},
         {FLAME.Pool,
@@ -45,6 +43,8 @@ defmodule Crawldis.Application do
 
         _ ->
           [
+            !flame_parent && Crawldis.Oban,
+            !flame_parent && Crawldis.Scheduler,
             Crawldis.Manager,
             Crawldis.AutoShutdownMonitor,
             Crawldis.Fetcher.HttpFetcher,

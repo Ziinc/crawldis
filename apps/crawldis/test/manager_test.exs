@@ -296,27 +296,28 @@ defmodule Crawldis.ManagerTest do
     end
   end
 
-  test "queue_job/1 enqueues an oban job" do
-    HttpFetcher
-    |> expect(:fetch, 1, fn _req ->
-      {:ok, %Tesla.Env{status: 200, body: "some body"}}
-    end)
-
-    assert :ok =
-             Manager.queue_job(
-               start_urls: [
-                 "http://www.localhost:4555"
-               ]
-             )
-
-    :timer.sleep(1_000)
-  end
-
   describe "citrine" do
     setup do
-      on_exit(fn ->
-        Manager.delete_scheduled_jobs()
+      start_link_supervised!(Crawldis.Oban)
+      start_link_supervised!(Crawldis.Scheduler)
+
+      :ok
+    end
+
+    test "queue_job/1 enqueues an oban job" do
+      HttpFetcher
+      |> expect(:fetch, 1, fn _req ->
+        {:ok, %Tesla.Env{status: 200, body: "some body"}}
       end)
+
+      assert :ok =
+               Manager.queue_job(
+                 start_urls: [
+                   "http://www.localhost:4555"
+                 ]
+               )
+
+      :timer.sleep(1_000)
     end
 
     test "schedule_job/1 schedules a job on citrine" do
