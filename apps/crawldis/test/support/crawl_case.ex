@@ -18,7 +18,7 @@ defmodule Crawldis.CrawlCase do
   @doc """
   Sets up the sandbox based on the test tags.
   """
-  def setup_sandbox(tags) do
+  def setup_sandbox(_tags) do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Crawldis.Repo)
     # Setting the shared mode must be done only after checkout
     Ecto.Adapters.SQL.Sandbox.mode(Crawldis.Repo, {:shared, self()})

@@ -34,7 +34,8 @@ jobs:
           options: |
             -v ${{ github.workspace }}/init.json:/app/bin/init.json
             -v ${{ github.workspace }}/tmp:/app/bin/tmp 
-            -e CRAWLDIS_CONFIG_FILE=init.json
+            -e CRAWLDIS_CONFIG_FILE=./init.json
+          run: ./crawldis start
       - run: ls -la tmp
       - name: Export to JSONL check
         run: grep -Fxq "How to Generate Dynamic Pages for Docusaurus" tmp/static.jsonl
