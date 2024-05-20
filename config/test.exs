@@ -31,4 +31,5 @@ config :crawldis, Crawldis.Oban, testing: :inline
 
 config :crawldis, Crawldis.Repo,
   database: ":memory:",
-  pool_size: 1
+  pool_size: 1,
+  pool: Ecto.Adapters.SQL.Sandbox

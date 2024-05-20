@@ -213,8 +213,18 @@ defmodule Crawldis.ManagerTest do
     # end
 
     test "follow links" do
+      pid = self()
+      ref1 = make_ref()
+      ref2 = make_ref()
+
       HttpFetcher
-      |> expect(:fetch, 2, fn _req ->
+      |> expect(:fetch, 2, fn req ->
+        if req.url =~ "some-other-path" do
+          send(pid, ref2)
+        else
+          send(pid, ref1)
+        end
+
         {:ok,
          %Tesla.Env{
            status: 200,
@@ -234,12 +244,17 @@ defmodule Crawldis.ManagerTest do
                  plugins: []
                })
 
-      :timer.sleep(2_000)
+      assert_receive ^ref1, 1000
+      assert_receive ^ref2, 1500
     end
 
     test "follow links drop duplicates" do
+      pid = self()
+
       HttpFetcher
-      |> expect(:fetch, 3, fn _req ->
+      |> expect(:fetch, 3, fn req ->
+        send(pid, req.url)
+
         {:ok,
          %Tesla.Env{
            status: 200,
@@ -264,7 +279,9 @@ defmodule Crawldis.ManagerTest do
                  plugins: []
                })
 
-      :timer.sleep(2_500)
+      assert_receive "http://localhost:4444", 1_000
+      assert_receive "http://localhost:4444/some-path", 1_000
+      assert_receive "http://localhost:4444/some-other-path", 1_000
     end
 
     test "exported" do
