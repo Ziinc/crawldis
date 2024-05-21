@@ -46,6 +46,10 @@ ENV MIX_ENV="prod"
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/crawldis ./
 
+USER root
+RUN mkdir -p /var/lib/crawldis/data
+RUN chown nobody:nobody /var/lib/crawldis/data
+
 USER nobody
 
 # If using an environment that doesn't automatically reap zombie processes, it is
@@ -53,7 +57,5 @@ USER nobody
 # above and adding an entrypoint. See https://github.com/krallin/tini for details
 ENTRYPOINT ["tini", "--"]
 WORKDIR "/app/bin"
-
-RUN mkdir -p /var/lib/crawldis/data
 
 CMD ["./crawldis", "start"]
