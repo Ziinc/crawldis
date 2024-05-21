@@ -54,4 +54,6 @@ USER nobody
 ENTRYPOINT ["tini", "--"]
 WORKDIR "/app/bin"
 
+RUN mkdir -p /var/lib/crawldis/data
+
 CMD ["./crawldis", "start"]
