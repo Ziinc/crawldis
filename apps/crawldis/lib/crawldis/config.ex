@@ -13,7 +13,7 @@ defmodule Crawldis.Config do
     crawl_jobs: [
       %{
         name: :string,
-        cron: :string,
+        cron: [field: :string, default: nil],
         max_request_concurrency: :integer,
         max_request_rate_per_sec: :integer,
         start_urls: [:string],

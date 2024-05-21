@@ -75,7 +75,7 @@ defmodule Crawldis.Application do
       Config.load_config(config)
 
       for job <- config.crawl_jobs do
-        if job.cron do
+        if Map.get(job, :cron) do
           Manager.schedule_job(job)
         else
           Manager.queue_job(job)
