@@ -48,7 +48,7 @@ COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/crawldis ./
 
 USER root
 RUN mkdir -p /var/lib/crawldis/data
-RUN chown nobody:root /var/lib/crawldis
+RUN chown -R nobody:root /var/lib/crawldis
 
 USER nobody
 
