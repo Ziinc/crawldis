@@ -5,7 +5,7 @@ config :crawldis,
   config_file: "init.json"
 
 config :crawldis, Crawldis.Repo,
-  database: "tmp/crawler.db"
+  database: "tmp/crawldis.db"
 
 # Configure your database
 config :crawldis_panel, CrawldisPanel.Repo,

@@ -46,6 +46,9 @@ config :logger, :console,
 config :crawldis,
   ecto_repos: [Crawldis.Repo]
 
+config :crawldis, Crawldis.Repo,
+  database: "/var/lib/crawldis/data/crawldis.db"
+
 config :crawldis, Crawldis.Oban,
   engine: Oban.Engines.Lite,
   queues: [default: 10],
