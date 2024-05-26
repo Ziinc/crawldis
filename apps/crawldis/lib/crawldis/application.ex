@@ -38,7 +38,8 @@ defmodule Crawldis.Application do
              keys: :unique,
              name: Crawldis.UrlRegistry,
              partitions: System.schedulers_online()},
-            {Registry, [name: Crawldis.ManagerRegistry, keys: :unique]}
+            {Registry, [name: Crawldis.ManagerRegistry, keys: :unique]},
+            {Finch, name: Logflare.Finch}
           ] ++ common
 
         _ ->

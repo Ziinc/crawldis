@@ -140,7 +140,7 @@ defmodule Crawldis.ManagerTest do
       end)
 
       ExportJsonl
-      |> expect(:export, 1, fn _req, _job, _ ->
+      |> expect(:export_many, 1, fn _req, _job, _ ->
         send(pid, ref2)
         :ok
       end)
@@ -156,7 +156,7 @@ defmodule Crawldis.ManagerTest do
                  ]
                )
 
-      :timer.sleep(500)
+      :timer.sleep(2_000)
       assert_received ^ref1
       assert_received ^ref2
     end
@@ -299,7 +299,7 @@ defmodule Crawldis.ManagerTest do
                  plugins: [{ExportJsonl, dir: "tmp/data"}]
                )
 
-      :timer.sleep(500)
+      :timer.sleep(2_000)
 
       # assert %CrawlJob.Metrics{
       #   extracted: 1,

@@ -37,6 +37,8 @@ defmodule Crawldis.MixProject do
       {:exsync, "~> 0.2", only: :dev},
       {:uuid, "~> 1.1" },
       {:hardhat, "~> 1.0.0"},
+      {:finch, "~> 0.18", override: true},
+      {:tesla, "~> 1.4"},
       {:telemetry, "~> 1.0"},
       {:typed_struct, "~> 0.3.0"},
       {:mimic, "~> 1.7", only: :test},

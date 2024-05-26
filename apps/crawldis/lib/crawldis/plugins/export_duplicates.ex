@@ -28,7 +28,7 @@ defmodule Crawldis.Plugins.ExportDuplicates do
   end
 
   @impl Crawldis.Plugin
-  def export(data, %CrawlJob{} = job, opts) do
+  def export_one(data, %CrawlJob{} = job, opts) do
     opts = Enum.into(opts, %{strategy: "drop"})
     hash = do_hash(data)
     duplicate? = :ets.member(@table_name, {job.id, hash})

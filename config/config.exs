@@ -56,5 +56,8 @@ config :crawldis, Crawldis.Oban,
   notifier: Oban.Notifiers.PG,
   peer: Oban.Peers.Global
 
+
+config :tesla, :adapter, {Tesla.Adapter.Finch, name: Logflare.Finch}
+
 import_config "#{Mix.env()}.exs"
 # import_config "local.secret.exs"

@@ -1,3 +1,5 @@
 Mimic.copy(Crawldis.Fetcher.HttpFetcher)
 Mimic.copy(Crawldis.Plugins.ExportJsonl)
+Mimic.copy(Crawldis.Plugins.ExportWebhook)
+Mimic.copy(Tesla)
 ExUnit.start(exclude: [:not_implemented])

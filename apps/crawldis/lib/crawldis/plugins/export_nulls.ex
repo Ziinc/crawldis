@@ -3,7 +3,7 @@ defmodule Crawldis.Plugins.ExportNulls do
   @behaviour Crawldis.Plugin
 
   @impl Crawldis.Plugin
-  def export(data, _job, opts) do
+  def export_one(data, _job, opts) do
     opts = Enum.into(opts, %{strategy: "drop"})
 
     if opts.strategy == "drop" and all_nulls?(data) do
