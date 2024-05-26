@@ -29,8 +29,7 @@ defmodule Crawldis.ExportPipeline do
 
   def init_plugins(crawl_job) do
     for {plugin, opts} <- Config.get_config(:plugins, crawl_job),
-
-    Keyword.has_key?(plugin.__info__(:functions), :init) do
+        Keyword.has_key?(plugin.__info__(:functions), :init) do
       plugin.init(opts)
     end
   end
@@ -62,7 +61,7 @@ defmodule Crawldis.ExportPipeline do
   end
 
   def handle_export_one(data, crawl_job) when is_map(data) do
-     for {plugin, opts} <- Config.get_config(:plugins, crawl_job),
+    for {plugin, opts} <- Config.get_config(:plugins, crawl_job),
         Keyword.has_key?(plugin.__info__(:functions), :export_one),
         reduce: {:ok, data} do
       {:ok, data} -> plugin.export_one(data, crawl_job, opts)
