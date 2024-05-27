@@ -11,6 +11,8 @@ defmodule CrawldisUmbrella.MixProject do
       aliases: aliases(),
       releases: [
         crawldis: [
+          include_executables_for: [:unix],
+          overlays: ["rel/overlays"],
           applications: [crawldis: :permanent]
         ]
       ]

@@ -58,4 +58,4 @@ USER nobody
 ENTRYPOINT ["tini", "--"]
 WORKDIR "/app/bin"
 
-CMD ["./startup.sh", "&&", "./crawldis", "start"]
+CMD ["./startup.sh"]

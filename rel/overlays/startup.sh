@@ -1,1 +1,0 @@
-./crawldis eval "Crawldis.Release.migrate"
