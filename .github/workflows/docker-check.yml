@@ -1,0 +1,41 @@
+name: Docker Build Check
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  docker-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v5
+        with:
+          push: false
+          load: true
+          tags: ziinc/crawldis:local
+          # caching
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - run: mkdir ./tmp
+      - name: Run export
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ziinc/crawldis:local
+          options: |
+            -v ${{ github.workspace }}/init.json:/app/bin/init.json
+            -v ${{ github.workspace }}/tmp:/app/bin/tmp 
+            -e CRAWLDIS_CONFIG_FILE=./init.json
+          run: ./crawldis start
+      - run: ls -la tmp
+      - name: Export to JSONL check
+        run: grep -Fxq "How to Generate Dynamic Pages for Docusaurus" tmp/static.jsonl

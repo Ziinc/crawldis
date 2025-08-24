@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  worker:
+    image: ziinc/crawldis:latest
+    environment:
+      CRAWLDIS_CONFIG_FILE: init.json
+    volumes:
+      - ./init.json:/app/bin/init.json:ro
+      - type: bind
+        source: ./tmp
+        target: /app/bin/tmp
+volumes:
+  pgdata:
